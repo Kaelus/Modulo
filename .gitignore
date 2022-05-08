@@ -8,6 +8,7 @@ bin/
 *.log
 *.jar
 !zookeeper-3.4.11.jar
+!zookeeper-3.7.0-SNAPSHOT.jar
 lib/
 *~
 .gradle/
