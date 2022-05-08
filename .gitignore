@@ -13,3 +13,4 @@ lib/
 *~
 .gradle/
 scheduleGen/
+experiment/
