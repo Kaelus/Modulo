@@ -1,0 +1,14 @@
+.classpath
+.eclipse/
+.project
+.revision/
+.settings/
+build/
+bin/
+*.log
+*.jar
+lib/
+*~
+.gradle/
+
+

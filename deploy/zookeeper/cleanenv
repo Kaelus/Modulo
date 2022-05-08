@@ -1,0 +1,11 @@
+#!/bin/sh
+
+kill $(jps | grep 'QuorumPeerMain' | awk '{print $1}')
+kill $(jps | grep 'TestingEngine' | awk '{print $1}')
+kill $(jps | grep 'StrataConex.jar' | awk '{print $2}')
+
+#kill $(ps aux | grep 'QuorumPeerMain' | grep -v grep | awk '{print $2}')
+#kill $(ps aux | grep 'strata.conex.TestingEngine' | grep -v grep | awk '{print $2}')
+#kill $(ps aux | grep 'StrataConex.jar' | grep -v grep | awk '{print $2}')
+#rm -rf ./data ./log 
+#rm -rf ./record

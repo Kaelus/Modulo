@@ -1,0 +1,46 @@
+apply plugin: 'java'
+//apply plugin: 'application'
+apply plugin: 'eclipse'
+
+//sourceCompatibility = 1.9
+//version = '0.1'
+//jar {
+//    manifest {
+//    	     attributes 'Implementation-Title': 'drmbt mongo',
+//	     		'Implementation-Version': version
+//    }
+//}
+
+version = '1.0'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+     manifest {
+     	      attributes 'Implementation-Title': 'Gradle Jar File Example',
+	      		 'Implementation-Version': version,
+			 'Main-Class': 'strata.conex.TestingEngine'
+     }
+     baseName = project.name + '-all'
+     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+     with jar
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.mongodb:mongodb-driver:3.6.0'
+    //compile 'org.mongodb:mongodb-driver:3.1.0'
+    compile 'org.apache.zookeeper:zookeeper:3.4.11'
+    compile 'com.datastax.oss:java-driver-core:4.3.1'
+    compile 'com.datastax.oss:java-driver-query-builder:4.3.1'
+    compile 'com.datastax.oss:java-driver-mapper-runtime:4.3.1'
+}
+
+[compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all']
+
+//// Define the main class for the application
+//mainClassName = 'strata/conex/TestingEngine'
