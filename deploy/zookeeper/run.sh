@@ -4,4 +4,4 @@ cd ../..
 
 echo Option given = $@
 
-java -jar `pwd`/../../build/libs/modulo-all-1.0.jar -c `pwd`/../../deploy/zookeeper/strata.config "$@"
+java -jar build/libs/modulo-all-1.0.jar -c deploy/zookeeper/strata.config "$@"
