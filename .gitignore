@@ -7,8 +7,8 @@ build/
 bin/
 *.log
 *.jar
+!zookeeper-3.4.11.jar
 lib/
 *~
 .gradle/
 scheduleGen/
-
