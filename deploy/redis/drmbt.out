@@ -1,0 +1,630 @@
+Option given =
+configuration file is given=/home/ben/project/drmbt/drmbt-code/deploy/redis/strata.config
+workloadDirName=/home/ben/project/drmbt/scheduleGen/schedules_redis-4.0.0_s-cl-drm-2/scheduleFile-1-2
+workingDir=/home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1
+strataTestRecordDirPath=/home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/record
+fileEntry=schedules-1AOP_2Nodes0
+Preparing Testing Environment
+RedisSystemController is constructed
+sutSrcDir=/home/ben/project/redis/src
+deployScriptDir=/home/ben/project/drmbt/drmbt-code/deploy/redis
+There are as many as 0 test cases executed previously
+Start Testing!
+=============================================================================
+Loaded all Schedules in the file=/home/ben/project/drmbt/scheduleGen/schedules_redis-4.0.0_s-cl-drm-2/scheduleFile-1-2/schedules-1AOP_2Nodes0
+16 many schedules are loaded
+Processing schedule file=schedules-1AOP_2Nodes0
+Start executing a batch of schedules
+next test id=1
+schedule to execute=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@66cd51c3
+type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+
+Invoking CMD=
+./setup.sh 2 /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1
+startEnsemble
+Starting node 0
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6379" | awk '{print $2}'
+pid of the Redis Server started for node=0 is=18496
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18510
+log4j:WARN No appenders could be found for logger (io.netty.util.internal.logging.InternalLoggerFactory).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+node1 sync from node0
+initial sync sources=[-1, 0]
+findLeader
+bootstrapClients
+findLeader
+primaryID=0 key=/testDivergenceResync0 value=0
+findLeader
+primaryID=0 key=/testDivergenceResync-Probing-Key value=777
+saveAbstractSchedule entered
+findLeader
+writing to DB=1
+>> divergence path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@66cd51c3
+given path is deviation path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@66cd51c3
+sortTargetState=[1, 0]
+  Note: node online status=[true, true]
+findLeader
+stopNode 1
+failureState is=[NONE, CRASH]
+Crashing node 1
+Invoking cmd=
+/bin/sh -c kill -9 18510
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18510 "
+Verified that we succeeded to completely kill the given pid process
+setting node offline for id=1
+findLeader
+in writeData. primaryID=0
+setting key=/testDivergenceResync0 value=1000
+Writing to node=0 key=/testDivergenceResync0 the value=1000
+waitForCommit nodes=[0] key=/testDivergenceResync0 val=1000
+stopNode 0
+failureState is=[NONE, CRASH]
+NONE node 0
+afterDivergencePath
+beforeResyncPath
+>> resync path=type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+given path is resync path=type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+startNode 1
+resync type is ONLINE
+starting node was CRASHed
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+invoking command succeeded
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18559
+getpid succeeded
+node1 sync from node0
+waitForResync nodes=[1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is the root of the chain. Set it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is NOT online
+afterResyncPath
+============= invariantCheck BEGIN ==============
+findLeader
+in writeData. primaryID=0
+setting key=/testDivergenceResync0 value=8172
+waitForResync nodes=[0, 1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is the root of the chain. Set it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is online
+node1 is NOT yet synced
+node1 is NOT the root of the chain
+node1 has sync source that is online
+Find the closest online and out-of-sync ancester of the node 1 in the chain
+currentChain=[1]
+node1 has sync source=0
+---- syncing wait 0-th times ----
+aof_rewrite_in_progress=aof_rewrite_in_progress:0
+master_link_status=master_link_status:up
+master_sync_in_progress=master_sync_in_progress:0
+syncIsConfirmed=true
+currentChain [1] is done with resync
+Selecting DB 0
+In readData. nodeID=0 key=/testDivergenceResync0 value=0 DB=0
+Selecting DB=1
+In readData. nodeID=0 key=/testDivergenceResync0 value=8172 DB=1
+nodeID=0 key=/testDivergenceResync0 value=08172
+Selecting DB 0
+In readData. nodeID=1 key=/testDivergenceResync0 value=0 DB=0
+Selecting DB=1
+In readData. nodeID=1 key=/testDivergenceResync0 value=8172 DB=1
+nodeID=1 key=/testDivergenceResync0 value=08172
+saveResult entered
+result=true
+saveResult entered
+saveScheduleExecuted sched=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, NONE] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@66cd51c3
+type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+
+stopEnsemble
+Invoking cmd=
+/bin/sh -c kill -9 18496
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18496 "
+Verified that we succeeded to completely kill the given pid process
+Invoking cmd=
+/bin/sh -c kill -9 18559
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18559 "
+Verified that we succeeded to completely kill the given pid process
+resetTest
+Testing is done for test number=1
+-------------------------------------------------
+next test id=2
+schedule to execute=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@443118b0
+type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_1
+type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+
+Invoking CMD=
+./setup.sh 2 /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1
+startEnsemble
+Starting node 0
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6379" | awk '{print $2}'
+pid of the Redis Server started for node=0 is=18621
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18635
+node1 sync from node0
+initial sync sources=[-1, 0]
+findLeader
+bootstrapClients
+findLeader
+primaryID=0 key=/testDivergenceResync0 value=0
+findLeader
+primaryID=0 key=/testDivergenceResync-Probing-Key value=777
+saveAbstractSchedule entered
+findLeader
+writing to DB=1
+>> divergence path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@443118b0
+given path is deviation path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@443118b0
+sortTargetState=[1, 0]
+  Note: node online status=[true, true]
+findLeader
+stopNode 1
+failureState is=[NONE, CRASH]
+Crashing node 1
+Invoking cmd=
+/bin/sh -c kill -9 18635
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18635 "
+Verified that we succeeded to completely kill the given pid process
+setting node offline for id=1
+findLeader
+in writeData. primaryID=0
+setting key=/testDivergenceResync0 value=1000
+Writing to node=0 key=/testDivergenceResync0 the value=1000
+waitForCommit nodes=[0] key=/testDivergenceResync0 val=1000
+stopNode 0
+failureState is=[NONE, CRASH]
+NONE node 0
+afterDivergencePath
+beforeResyncPath
+>> resync path=type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_1
+given path is resync path=type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_1
+startNode 1
+resync type is OFFLINE_1
+findLeader
+bgsave on primary=0
+Invoking cmd=
+cp /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/dump.rdb /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+invoking command succeeded
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18688
+getpid succeeded
+waitForResync nodes=[1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is the root of the chain. Set it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is NOT online
+afterResyncPath
+beforeResyncPath
+>> resync path=type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+given path is resync path=type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+startNode 1
+resync type is ONLINE
+node1 sync from node0
+waitForResync nodes=[1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is the root of the chain. Set it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is NOT online
+afterResyncPath
+============= invariantCheck BEGIN ==============
+findLeader
+in writeData. primaryID=0
+setting key=/testDivergenceResync0 value=8172
+waitForResync nodes=[0, 1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is the root of the chain. Set it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is online
+node1 is NOT yet synced
+node1 is NOT the root of the chain
+node1 has sync source that is online
+Find the closest online and out-of-sync ancester of the node 1 in the chain
+currentChain=[1]
+node1 has sync source=0
+---- syncing wait 0-th times ----
+aof_rewrite_in_progress=aof_rewrite_in_progress:0
+master_link_status=master_link_status:down
+master_sync_in_progress=master_sync_in_progress:0
+syncIsConfirmed=false
+Resync is still not finished.. wait longer
+---- syncing wait 1-th times ----
+aof_rewrite_in_progress=aof_rewrite_in_progress:0
+master_link_status=master_link_status:up
+master_sync_in_progress=master_sync_in_progress:0
+syncIsConfirmed=true
+currentChain [1] is done with resync
+Selecting DB 0
+In readData. nodeID=0 key=/testDivergenceResync0 value=0 DB=0
+Selecting DB=1
+In readData. nodeID=0 key=/testDivergenceResync0 value=8172 DB=1
+nodeID=0 key=/testDivergenceResync0 value=08172
+Selecting DB 0
+In readData. nodeID=1 key=/testDivergenceResync0 value=8172 DB=0
+Selecting DB=1
+In readData. nodeID=1 key=/testDivergenceResync0 value=1000 DB=1
+nodeID=1 key=/testDivergenceResync0 value=81721000
+Expecting the value of the key=/testDivergenceResync0 on the 0-st and 1-st servers should be same
+saveResult entered
+result=false
+saveResult entered
+saveScheduleExecuted sched=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, NONE] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@443118b0
+type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_1
+type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+
+stopEnsemble
+Invoking cmd=
+/bin/sh -c kill -9 18621
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18621 "
+Verified that we succeeded to completely kill the given pid process
+Invoking cmd=
+/bin/sh -c kill -9 18688
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18688 "
+Verified that we succeeded to completely kill the given pid process
+resetTest
+Testing is done for test number=2
+-------------------------------------------------
+next test id=3
+schedule to execute=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@6150c3ec
+type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_2
+type=RESYNC devNode=[0] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+
+Invoking CMD=
+./setup.sh 2 /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1
+startEnsemble
+Starting node 0
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6379" | awk '{print $2}'
+pid of the Redis Server started for node=0 is=18751
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18766
+node1 sync from node0
+initial sync sources=[-1, 0]
+findLeader
+bootstrapClients
+findLeader
+primaryID=0 key=/testDivergenceResync0 value=0
+findLeader
+primaryID=0 key=/testDivergenceResync-Probing-Key value=777
+saveAbstractSchedule entered
+findLeader
+writing to DB=1
+>> divergence path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@6150c3ec
+given path is deviation path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@6150c3ec
+sortTargetState=[1, 0]
+  Note: node online status=[true, true]
+findLeader
+stopNode 1
+failureState is=[NONE, CRASH]
+Crashing node 1
+Invoking cmd=
+/bin/sh -c kill -9 18766
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18766 "
+Verified that we succeeded to completely kill the given pid process
+setting node offline for id=1
+findLeader
+in writeData. primaryID=0
+setting key=/testDivergenceResync0 value=1000
+Writing to node=0 key=/testDivergenceResync0 the value=1000
+waitForCommit nodes=[0] key=/testDivergenceResync0 val=1000
+stopNode 0
+failureState is=[NONE, CRASH]
+NONE node 0
+afterDivergencePath
+beforeResyncPath
+>> resync path=type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_2
+given path is resync path=type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_2
+startNode 1
+resync type is OFFLINE_2
+findLeader
+bgsave on primary=0
+Invoking cmd=
+cp /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/dump.rdb /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+invoking command succeeded
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18818
+getpid succeeded
+waitForResync nodes=[1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is the root of the chain. Set it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is NOT online
+afterResyncPath
+findLeader
+beforeResyncPath
+>> resync path=type=RESYNC devNode=[0] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+given path is resync path=type=RESYNC devNode=[0] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+startNode 0
+resync type is ONLINE
+node0 sync from node1
+waitForResync nodes=[0]
+wait for resync for node0
+isSynced for the node0=false
+node0 is NOT online
+wait for resync for node1
+isSynced for the node1=false
+node1 is online
+node1 is NOT yet synced
+node1 is the root of the chain. Set it as synced
+afterResyncPath
+============= invariantCheck BEGIN ==============
+findLeader
+in writeData. primaryID=1
+setting key=/testDivergenceResync0 value=8172
+waitForResync nodes=[0, 1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is NOT the root of the chain
+node0 has sync source that is online
+Find the closest online and out-of-sync ancester of the node 0 in the chain
+currentChain=[0]
+node0 has sync source=1
+---- syncing wait 0-th times ----
+aof_rewrite_in_progress=aof_rewrite_in_progress:0
+master_link_status=master_link_status:down
+master_sync_in_progress=master_sync_in_progress:1
+syncIsConfirmed=false
+Resync is still not finished.. wait longer
+---- syncing wait 1-th times ----
+aof_rewrite_in_progress=aof_rewrite_in_progress:0
+master_link_status=master_link_status:up
+master_sync_in_progress=master_sync_in_progress:0
+syncIsConfirmed=true
+currentChain [0] is done with resync
+wait for resync for node1
+isSynced for the node1=true
+node1 is online
+node1 is already synced
+Selecting DB 0
+In readData. nodeID=0 key=/testDivergenceResync0 value=8172 DB=0
+Selecting DB=1
+In readData. nodeID=0 key=/testDivergenceResync0 value=1000 DB=1
+nodeID=0 key=/testDivergenceResync0 value=81721000
+Selecting DB 0
+In readData. nodeID=1 key=/testDivergenceResync0 value=8172 DB=0
+Selecting DB=1
+In readData. nodeID=1 key=/testDivergenceResync0 value=1000 DB=1
+nodeID=1 key=/testDivergenceResync0 value=81721000
+saveResult entered
+result=true
+saveResult entered
+saveScheduleExecuted sched=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, NONE] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@6150c3ec
+type=RESYNC devNode=[1] Sources=null Targets=null ResyncType=OFFLINE_2
+type=RESYNC devNode=[0] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+
+stopEnsemble
+Invoking cmd=
+/bin/sh -c kill -9 18751
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18751 "
+Verified that we succeeded to completely kill the given pid process
+Invoking cmd=
+/bin/sh -c kill -9 18818
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18818 "
+Verified that we succeeded to completely kill the given pid process
+resetTest
+Testing is done for test number=3
+-------------------------------------------------
+next test id=4
+schedule to execute=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@367ffa75
+type=RESYNC devNode=[1] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+
+Invoking CMD=
+./setup.sh 2 /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1
+startEnsemble
+Starting node 0
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6379" | awk '{print $2}'
+pid of the Redis Server started for node=0 is=18882
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18896
+node1 sync from node0
+initial sync sources=[-1, 0]
+findLeader
+bootstrapClients
+findLeader
+primaryID=0 key=/testDivergenceResync0 value=0
+findLeader
+primaryID=0 key=/testDivergenceResync-Probing-Key value=777
+saveAbstractSchedule entered
+findLeader
+writing to DB=1
+>> divergence path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@367ffa75
+given path is deviation path=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, CRASH] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@367ffa75
+sortTargetState=[1, 0]
+  Note: node online status=[true, true]
+findLeader
+stopNode 1
+failureState is=[NONE, CRASH]
+Crashing node 1
+Invoking cmd=
+/bin/sh -c kill -9 18896
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18896 "
+Verified that we succeeded to completely kill the given pid process
+setting node offline for id=1
+findLeader
+in writeData. primaryID=0
+setting key=/testDivergenceResync0 value=1000
+Writing to node=0 key=/testDivergenceResync0 the value=1000
+waitForCommit nodes=[0] key=/testDivergenceResync0 val=1000
+stopNode 0
+failureState is=[NONE, CRASH]
+NONE node 0
+afterDivergencePath
+beforeResyncPath
+>> resync path=type=RESYNC devNode=[1] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+given path is resync path=type=RESYNC devNode=[1] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+startNode 1
+resync type is ONLINE
+starting node was CRASHed
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+invoking command succeeded
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=18952
+getpid succeeded
+node0 sync from node1
+waitForResync nodes=[1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is NOT the root of the chain
+node0 has sync source that is not online. Treat it as synced
+wait for resync for node1
+isSynced for the node1=false
+node1 is NOT online
+afterResyncPath
+============= invariantCheck BEGIN ==============
+findLeader
+in writeData. primaryID=1
+setting key=/testDivergenceResync0 value=8172
+waitForResync nodes=[0, 1]
+wait for resync for node0
+isSynced for the node0=false
+node0 is online
+node0 is NOT yet synced
+node0 is NOT the root of the chain
+node0 has sync source that is online
+Find the closest online and out-of-sync ancester of the node 0 in the chain
+currentChain=[0]
+node0 has sync source=1
+---- syncing wait 0-th times ----
+aof_rewrite_in_progress=aof_rewrite_in_progress:0
+master_link_status=master_link_status:up
+master_sync_in_progress=master_sync_in_progress:0
+syncIsConfirmed=true
+currentChain [0] is done with resync
+wait for resync for node1
+isSynced for the node1=true
+node1 is online
+node1 is already synced
+Selecting DB 0
+In readData. nodeID=0 key=/testDivergenceResync0 value=8172 DB=0
+Selecting DB=1
+In readData. nodeID=0 key=/testDivergenceResync0 value=null DB=1
+nodeID=0 key=/testDivergenceResync0 value=8172null
+Selecting DB 0
+In readData. nodeID=1 key=/testDivergenceResync0 value=8172 DB=0
+Selecting DB=1
+In readData. nodeID=1 key=/testDivergenceResync0 value=null DB=1
+nodeID=1 key=/testDivergenceResync0 value=8172null
+saveResult entered
+result=true
+saveResult entered
+saveScheduleExecuted sched=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, NONE] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@367ffa75
+type=RESYNC devNode=[1] Sources=[1, -1] Targets=[0, 1] ResyncType=ONLINE
+
+stopEnsemble
+Invoking cmd=
+/bin/sh -c kill -9 18882
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18882 "
+Verified that we succeeded to completely kill the given pid process
+Invoking cmd=
+/bin/sh -c kill -9 18952
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | awk '{print $2}' | grep " 18952 "
+Verified that we succeeded to completely kill the given pid process
+resetTest
+Testing is done for test number=4
+-------------------------------------------------
+next test id=5
+schedule to execute=type=DEVIATION targetState=[1, 0] failureScenario=[NONE, DISCON] @failureScenario=[Lstrata.common.DeviationPath$FailureType;@43c1b556
+type=RESYNC devNode=[1] Sources=[-1, 0] Targets=[2, 0] ResyncType=ONLINE
+
+Invoking CMD=
+./setup.sh 2 /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1
+startEnsemble
+Starting node 0
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/0/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6379" | awk '{print $2}'
+pid of the Redis Server started for node=0 is=19020
+Starting node 1
+Invoking command=
+/home/ben/project/drmbt/drmbt-code/deploy/redis/start-redis.sh /home/ben/project/redis/src /home/ben/experiment/redis_performance_measure/4316-2/test-1-2-Redis-4.0.0-strata-0.1/redis_dir/1/redis.conf
+Invoking cmd=
+/bin/sh -c ps aux | grep redis-server | grep -v grep | grep -v ps | grep "redis-server 127.0.0.1:6380" | awk '{print $2}'
+pid of the Redis Server started for node=1 is=19033
+node1 sync from node0
+initial sync sources=[-1, 0]
+findLeader
+bootstrapClients
+findLeader
+primaryID=0 key=/testDivergenceResync0 value=0
