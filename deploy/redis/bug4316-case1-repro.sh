@@ -30,11 +30,11 @@ $CLI -p $B SLAVEOF 127.0.0.1 $A
 $CLI -p $A set foo bar
 sleep 1
 
-# 1. DIV [1, 0] CRASH
+# 1. DIV [1, 0] CRASH 1
 kill -9 $(ps aux | grep redis | grep $B | awk '{print $2}')
 $CLI -p $A set foo1 bar1
 
-# 2. RES [0, 1] 0->1 OFFSYNC
+# 2. RES [1] 0->1 OFFSYNC
 $CLI -p $A BGSAVE
 sleep 2
 cp $WORKING_DIR/redis_dir/0/dump.rdb $WORKING_DIR/redis_dir/1/.
