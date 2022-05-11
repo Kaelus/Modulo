@@ -1,8 +1,7 @@
 #!/bin/sh
 
 #interval=60
-#interval=120
-interval=300
+interval=120
 if [ ! -z "$1" ]; then
   interval=$1
 fi
@@ -18,12 +17,8 @@ while [ true ]; do
   num2=`ls $2/record | wc -l`
   if [ $num1 -eq $num2 ]; then
     if [ "$lastcheck" = "1" ]; then
-      #touch lastcheckOneExit
-      #break
-      ./cleanenv.sh
-      sleep 3
-      ./run.sh &
-      continue
+      touch lastcheckOneExit
+      break
     fi
     lastcheck="1"
     #if [ ! $num1 -eq 0 ]; then

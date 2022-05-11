@@ -4,7 +4,7 @@
 
 # -1. Environment setup
 echo "-1. Environment setup"
-WORKING_DIR=/home/ben/experiment/test-2-1-Redis-4.0.0-strata-0.1
+WORKING_DIR=/home/ben/experiment/test-1-2-Redis-4.0.0-strata-0.1
 DRMBT_SCRIPT_DIR=/home/ben/project/drmbt/drmbt-code/deploy/redis
 DRMBT_SUT_DIR=/home/ben/project/drmbt/drmbt-code/sut
 A=6379
@@ -30,11 +30,11 @@ $CLI -p $B SLAVEOF 127.0.0.1 $A
 $CLI -p $A set foo bar
 sleep 1
 
-# 1. DIV [1, 0] CRASH
+# 1. DIV [1, 0] CRASH 1
 kill -9 $(ps aux | grep redis | grep $B | awk '{print $2}')
 $CLI -p $A set foo1 bar1
 
-# 2. RES [0, 1] 0->1 OFFSYNC
+# 2. RES [1] 0->1 OFFSYNC
 $CLI -p $A BGSAVE
 sleep 2
 cp $WORKING_DIR/redis_dir/0/dump.rdb $WORKING_DIR/redis_dir/1/.

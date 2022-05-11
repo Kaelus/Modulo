@@ -54,7 +54,8 @@ sleep 1
 kill -9 $(ps aux | grep redis | grep $B | awk '{print $2}')
 #$CLI -p $A SELECT 1
 #$CLI -p $A set foo1 bar1
-(echo -e "SELECT 1\nset foo1 bar1\ndebug sleep 1\nBGSAVE\ndebug sleep 5\nset foo2 bar2" | $CLI -p $A) &
+#(echo -e "SELECT 1\nset foo1 bar1\ndebug sleep 1\nBGSAVE\ndebug sleep 5\nset foo2 bar2" | $CLI -p $A) &
+(echo -e "SELECT 1\nset foo bar1\ndebug sleep 1\nBGSAVE\ndebug sleep 5\nset foo bar2" | $CLI -p $A) &
 sleep 2
 
 # 2. RES [0, 1] 0->1 OFFSYNC

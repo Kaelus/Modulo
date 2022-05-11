@@ -4,11 +4,9 @@
 
 # -1. Environment setup
 echo "-1. Environment setup"
-#WORKING_DIR=/home/ben/experiment/test-3-1-Redis-4.0.0-strata-0.1
-WORKING_DIR=/home/ben/experiment/redis_performance_measure/4407/test-1-3-Redis-4.0.0-strata-0.1
+WORKING_DIR=/home/ben/experiment/test-3-1-Redis-4.0.0-strata-0.1
 DRMBT_SCRIPT_DIR=/home/ben/project/drmbt/drmbt-code/deploy/redis
-#DRMBT_SUT_DIR=/home/ben/project/drmbt/drmbt-code/sut
-DRMBT_SUT_DIR=/home/ben/project/redis/src
+DRMBT_SUT_DIR=/home/ben/project/drmbt/drmbt-code/sut
 A=6379
 B=6380
 C=6381

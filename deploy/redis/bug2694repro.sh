@@ -4,7 +4,8 @@ A=8888
 B=8889
 C=8890
 D=8891
-BIN=~/project/redis/src/redis-server
+#BIN=~/project/redis/src/redis-server
+BIN=~/project/drmbt/drmbt-code/sut/redis-server
 CLI=~/project/redis/src/redis-cli
 
 # 0. INIT
