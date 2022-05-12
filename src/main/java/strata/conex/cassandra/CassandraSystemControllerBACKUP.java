@@ -2,6 +2,7 @@ package strata.conex.cassandra;
 
 import java.util.ArrayList;
 
+import strata.common.Path;
 import strata.conex.SystemController;
 
 public class CassandraSystemControllerBACKUP extends SystemController {
@@ -487,7 +488,13 @@ public class CassandraSystemControllerBACKUP extends SystemController {
 	}
 
 	@Override
-	public void waitBeforeVerification() {
+	public void triggerResyncPath(int[] targetSyncSourcesChange) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void loadPath(Path path) {
 		// TODO Auto-generated method stub
 		
 	}

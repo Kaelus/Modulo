@@ -2,6 +2,8 @@ package strata.conex;
 
 import java.util.ArrayList;
 
+import strata.common.Path;
+
 public abstract class SystemController {
 	
 	protected int numNode;
@@ -34,6 +36,6 @@ public abstract class SystemController {
 	abstract public void afterDivergencePath();
 	abstract public void beforeResyncPath();
 	abstract public void afterResyncPath();
-	abstract public void waitBeforeVerification();
-	
+	abstract public void triggerResyncPath(int[] targetSyncSourcesChange);
+	abstract public void loadPath(Path path);
 }
