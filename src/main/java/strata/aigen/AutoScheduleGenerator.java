@@ -15,14 +15,14 @@ public class AutoScheduleGenerator {
 		System.out.println("directory to store schedule files=" + schedDir);
 		ScheduleGenerator sgen = new ScheduleGenerator(numAsyncOp, numNode, schedDir);
 		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		//sgen.findInitialPaths();
 		
 		while(!sgen.initialPaths.isEmpty()) {
 			sgen.currentInitPath = sgen.initialPaths.removeFirst();
 			sgen.resetTest();
 			sgen.replayInitPath();
 			sgen.generateSchedule();
-			sgen.findInitialPaths();
+			//sgen.findInitialPaths();
 			if (sgen.uniqSchedCnt % 10000 == 0) {
 				System.out.println("count=" + sgen.uniqSchedCnt);
 			}

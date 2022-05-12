@@ -144,7 +144,8 @@ public class ScheduleGenerator {
 		return retStr;
 	}
 	
-	private static void filterOutSymmetricPairs(List<int[]> devNodePairs, int[] nodeState) {
+	private static void filterOutSymmetricPairs(List<int[]> devNodePairs, int[] nodeState
+			, int[] syncSources, int[] syncTargets) {
 		List<int[]> uniqDevNodeStates = new ArrayList<int[]>();
 		//System.out.println("given devNodePairs" + " given nodeState=" + Arrays.toString(nodeState));
 		//for (int[] tmp : devNodePairs) {
@@ -156,7 +157,7 @@ public class ScheduleGenerator {
 			int[] tmpNodeState = new int[nodePair.length];
 			int cnt = 0;
 			for (int i : nodePair) {
-				tmpNodeState[cnt++] = nodeState[i];
+				tmpNodeState[cnt++] = 37*(37*(37*1 + nodeState[i]) + syncSources[i]) + syncTargets[i];
 			}
 			Arrays.sort(tmpNodeState);
 			//System.out.println("For nodePair=" + Arrays.toString(nodePair));
@@ -222,8 +223,8 @@ public class ScheduleGenerator {
 		return retList;
 	}
 	
-	
-	private static List<int[]> getAllDevNodeCombi(int[] nodeState, boolean[] onlineStatus) {
+	private static List<int[]> getAllDevNodeCombiHelper(int[] nodeState, boolean[] onlineStatus
+				, int[] syncSources, int[] syncTargets) {
 		//System.out.println("getAllDevNodePairs for " + Arrays.toString(nodeState));
 		List<int[]> retList = new ArrayList<int[]>();	
 		int numOnline = 0;
@@ -235,69 +236,175 @@ public class ScheduleGenerator {
 				nodeIDList.add(i);
 			}
 		}
-		int quorumSize = onlineStatus.length/2 + 1;
-		if (numOnline < quorumSize) {
-			//System.out.println("1 getAllDevNodeCombi chk");
-			int minNumToRestart = quorumSize - numOnline;
-			//System.out.println("-- minNumToRestart=" + minNumToRestart + " quorumSize=" + quorumSize
-			//		+ " numOnline=" + numOnline + " nodeIDList.size=" + nodeIDList.size());
-			for (int i = minNumToRestart; i <= nodeIDList.size(); i++) {
-				Permutation.getVConCombination(nodeIDList, i, nodeIDList.size());
-				//System.out.println("Combination List Begin:");
-		    	//for (LinkedList<Object> vconCombi : Permutation.vconCumCombiList) {
-		    	//	System.out.println(">> Combination Begin:");
-		    	//	for (Object vconCombiElem: vconCombi) {
-		    	//		System.out.println(vconCombiElem.toString());
-		    	//	}
-		    	//	System.out.println(">> Combination End");
-		        //}
-		    	//System.out.println("Combination List End");
-		    	for (LinkedList<Object> vconCombi : Permutation.vconCumCombiList) {
-		    		int[] combiArr = new int[vconCombi.size()];
-		    		for (int j = 0; j < combiArr.length; j++) {
-		    			combiArr[j] = (int) vconCombi.get(j); 
-		    		}
-		    		retList.add(combiArr);
-		    	}
-			}
+		if (numOnline == 0) {
+			Permutation.getVConCombination(nodeIDList, 2, nodeIDList.size());
 		} else {
-			//System.out.println("2 getAllDevNodeCombi chk");
-			//System.out.println("-- nodeIDList.size=" + nodeIDList.size() + " quorumSize=" + quorumSize
-			//		+ " numOnline=" + numOnline);
-			for (int i = 0; i < nodeIDList.size(); i++) {
-				Permutation.getVConCombination(nodeIDList, i+1, nodeIDList.size());
-				//System.out.println("Combination List Begin:");
-		    	//for (LinkedList<Object> vconCombi : Permutation.vconCumCombiList) {
-		    	//	System.out.println(">> Combination Begin:");
-		    	//	for (Object vconCombiElem: vconCombi) {
-		    	//		System.out.println(vconCombiElem.toString());
-		    	//	}
-		    	//	System.out.println(">> Combination End");
-		        //}
-		    	//System.out.println("Combination List End");
-			}
+			Permutation.getVConCombination(nodeIDList, 1, nodeIDList.size());
 		}
-		//List<int[]> tmpList = new ArrayList<int[]>();
-		for (LinkedList<Object> vconCombi : Permutation.vconCumCombiList) {
-			//System.out.println("vconCombi Size=" + vconCombi.size());
-			int[] tmpArr = new int[vconCombi.size()];
-			for (int i = 0; i < tmpArr.length; i++) {
-				tmpArr[i] = (int)vconCombi.get(i);
-			}
-			//tmpList.add(tmpArr);
-			if (tmpArr.length > 0) {
-				retList.add(tmpArr);
-			}
-		}
-		//retList.addAll(tmpList);
-		
-		filterOutSymmetricPairs(retList, nodeState);
+    	for (LinkedList<Object> vconCombi : Permutation.vconCumCombiList) {
+    		int[] combiArr = new int[vconCombi.size()];
+    		for (int j = 0; j < combiArr.length; j++) {
+    			combiArr[j] = (int) vconCombi.get(j); 
+    		}
+    		if (combiArr.length > 0) {
+    			retList.add(combiArr);
+    		}
+    	}
+		return retList;
+	}
+	
+	private static List<int[]> getAllDevNodeCombi(int[] nodeState, boolean[] onlineStatus
+			, int[] syncSources, int[] syncTargets) {
+		List<int[]> retList = getAllDevNodeCombiHelper(nodeState, onlineStatus, syncSources, syncTargets);
+		filterOutSymmetricPairs(retList, nodeState, syncSources, syncTargets);
 		//System.out.println("retList is:");
 		//for (int[] dn : retList) {
 		//	System.out.println(Arrays.toString(dn));
 		//}
 		return retList;
-		//return tmpList;
+	}
+
+	private static boolean hasCycle(int[] syncSources, int id) {
+		boolean result = false;
+		ArrayList<Integer> visitedNodes = new ArrayList<Integer>();
+		int curNode = id;
+		while (curNode != -1) {
+			if (visitedNodes.contains(curNode)) {
+				System.out.println("will form cycle");
+				result = true;
+				break;
+			}
+			visitedNodes.add(curNode);
+			curNode = syncSources[curNode];
+		}
+		return result;
+	}
+	
+	/*
+	 * For the given dn and states, this returns the list containing all possible enabled 
+	 * resync paths.
+	 * 
+	 * It does not generate the schedule where the restarted node skip the opportunity to
+	 * for the new chain although they won't change the chain once it is formed
+	 * 
+	 * It makes sure no cycle is formed in the replication chain. 
+	 * 
+	 * It makes sure that it properly fill out targetSyncSourcesChange and 
+	 * targetSyncTargetsChange in each ResyncPath.
+	 *  
+	 */
+	private static List<ResyncPath> getAllDevNodeResyncPaths(int[] dn, int[] curNodeState,
+			boolean[] curOnlineStatus, int[] curSyncSources, int[] curSyncTargets) {
+		List<ResyncPath> retList = new ArrayList<ResyncPath>();
+		boolean chainUpdated = false;
+		if (dn.length == 2) {
+			// To add resync path 1: dn[0]->dn[1] direction
+			ResyncPath newResyncPath = new ResyncPath();
+			newResyncPath.type = Path.PathType.RESYNC;
+			newResyncPath.devNode = dn;
+			int[] tssc = curSyncSources.clone();
+			int[] tstc = curSyncTargets.clone();
+			// we change syncSources and syncTargets only when the corresponding node does not have
+			// the sync source yet and no cycle will be formed
+			int[] testSyncSources = curSyncSources.clone();
+			if (tssc[dn[1]] == -1) {
+				testSyncSources[dn[1]] = dn[0];
+				if (!hasCycle(testSyncSources, dn[0])) {
+					tssc[dn[1]] = dn[0];
+					tstc[dn[0]] = tstc[dn[0]] | (1 << dn[1]); // set the bit at the corresponding index
+					newResyncPath.targetSyncSourcesChange = tssc;
+					newResyncPath.targetSyncTargetsChange = tstc;
+					retList.add(newResyncPath);
+					chainUpdated = true;
+				}
+			}
+			
+			// To add resync path 2: dn[0]<-dn[1] direction
+			newResyncPath = new ResyncPath();
+			newResyncPath.type = Path.PathType.RESYNC;
+			newResyncPath.devNode = dn;
+			tssc = curSyncSources.clone();
+			tstc = curSyncTargets.clone();
+			// we change syncSources and syncTargets only when the corresponding node does not have
+			// the sync source yet and no cycle will be formed
+			testSyncSources = curSyncSources.clone();
+			if (tssc[dn[0]] == -1) {
+				testSyncSources[dn[0]] = dn[1];
+				if (!hasCycle(testSyncSources, dn[1])) {
+					tssc[dn[0]] = dn[1];
+					tstc[dn[1]] = tstc[dn[1]] | (1 << dn[0]); // set the bit at the corresponding index
+					newResyncPath.targetSyncSourcesChange = tssc;
+					newResyncPath.targetSyncTargetsChange = tstc;
+					retList.add(newResyncPath);
+					chainUpdated = true;
+				}
+			}
+			
+			// To add resync path 3: we don't form a new chain because both nodes are already chained
+			if (!chainUpdated) {
+				newResyncPath.targetSyncSourcesChange = tssc;
+				newResyncPath.targetSyncTargetsChange = tstc;
+				retList.add(newResyncPath);
+			}
+		} else if (dn.length == 1) {
+			// To add resync paths:
+			for (int i = 0; i < curNodeState.length; i++) {
+				if (curOnlineStatus[i]) {
+					// To add resync path 1: i->dn[0] direction
+					ResyncPath newResyncPath = new ResyncPath();
+					newResyncPath.type = Path.PathType.RESYNC;
+					newResyncPath.devNode = dn;
+					int[] tssc = curSyncSources.clone();
+					int[] tstc = curSyncTargets.clone();
+					// we change syncSources and syncTargets only when the corresponding node does not have
+					// the sync source yet and no cycle will be formed
+					int[] testSyncSources = curSyncSources.clone();
+					if (tssc[dn[0]] == -1) {
+						testSyncSources[dn[0]] = i;
+						if (!hasCycle(testSyncSources, i)) {
+							tssc[dn[0]] = i;
+							tstc[i] = tstc[i] | (1 << dn[0]); // set the bit at the corresponding index
+							newResyncPath.targetSyncSourcesChange = tssc;
+							newResyncPath.targetSyncTargetsChange = tstc;
+							retList.add(newResyncPath);
+							chainUpdated = true;
+						}
+					}
+					
+					// To add resync path 2: i<-dn[0] direction
+					newResyncPath = new ResyncPath();
+					newResyncPath.type = Path.PathType.RESYNC;
+					newResyncPath.devNode = dn;
+					tssc = curSyncSources.clone();
+					tstc = curSyncTargets.clone();
+					// we change syncSources and syncTargets only when the corresponding node does not have
+					// the sync source yet
+					testSyncSources = curSyncSources.clone();
+					if (tssc[i] == -1) {
+						testSyncSources[i] = dn[0];
+						if (!hasCycle(testSyncSources, dn[0])) {
+							tssc[i] = dn[0];
+							tstc[dn[0]] = tstc[dn[0]] | (1 << i); // set the bit at the corresponding index
+							newResyncPath.targetSyncSourcesChange = tssc;
+							newResyncPath.targetSyncTargetsChange = tstc;
+							retList.add(newResyncPath);
+							chainUpdated = true;
+						}
+					}
+					
+					// To add resync path 3: we don't form a new chain because both nodes are already chained
+					if (!chainUpdated) {
+						newResyncPath.targetSyncSourcesChange = tssc;
+						newResyncPath.targetSyncTargetsChange = tstc;
+						retList.add(newResyncPath);
+					}
+				}
+			}
+		} else {
+			System.err.println("ERROR dn has an incorrect length which is=" + dn.length + " dn=" + Arrays.toString(dn));
+			System.exit(1);
+		}
+		return retList;
 	}
 	
 	private static void filterOutInvalidTargetState(List<int[]> multisets, boolean[] onlineStatus){
@@ -334,6 +441,17 @@ public class ScheduleGenerator {
 		// TODO Auto-generated method stub
 		
 	}
+
+
+	private static List<ResyncPath> filterRepeatedDevNodeResyncPaths(List<ResyncPath> tmpResyncPathList) {
+		List<ResyncPath> filteredDevNodeResyncPaths = new ArrayList<ResyncPath>();
+		for (ResyncPath rp : tmpResyncPathList) {
+			if (!filteredDevNodeResyncPaths.contains(rp)) {
+				filteredDevNodeResyncPaths.add(rp);
+			}
+		}
+		return filteredDevNodeResyncPaths;
+	}
 	
 	static int numNodeOnline(boolean[] onlineStatus) {
 		int countOnline = 0;
@@ -349,6 +467,8 @@ public class ScheduleGenerator {
 		int curNumAsyncOp = curState.numAsyncOp;
 		int[] curNodeState = curState.nodeState.clone();
 		boolean[] curOnlineStatus = curState.onlineStatus.clone();
+		int[] curSyncSources = curState.syncSources.clone();
+		int[] curSyncTargets = curState.syncTargets.clone();
 		int numOnline = numNodeOnline(curOnlineStatus);
 		boolean canDeviate = ((curNumAsyncOp > 0) ? true : false) 
 					&& (numOnline >= (curOnlineStatus.length/2 + 1));
@@ -370,18 +490,23 @@ public class ScheduleGenerator {
 		}
 		if (canResync) {
 			/** get all pairs of deviated nodes */
-			List<int[]> devNodeCombi = getAllDevNodeCombi(curNodeState, curOnlineStatus);
+			List<int[]> devNodeCombi = getAllDevNodeCombi(curNodeState, curOnlineStatus
+					, curSyncSources, curSyncTargets);
 			
-			/** add resync path to currently enabled path list for each deviated node pair */
+			/** generate and add resync paths to currently enabled path list 
+			 *  for each deviated node pair */
 			for (int[] dn : devNodeCombi) {
-				ResyncPath myResyncPath = new ResyncPath();
-				myResyncPath.type = Path.PathType.RESYNC;
-				myResyncPath.devNode = dn;
-				currentEnabledPaths.add(myResyncPath);
+				List<ResyncPath> tmpResyncPathList = getAllDevNodeResyncPaths(dn, curNodeState, 
+						curOnlineStatus, curSyncSources, curSyncTargets);
+				// filter out repeated ResyncPaths
+				List<ResyncPath> resyncPathList = filterRepeatedDevNodeResyncPaths(tmpResyncPathList);
+				for (ResyncPath rp : resyncPathList) {
+					currentEnabledPaths.add(rp);
+				}
 			}
 		}
 	}
-	
+
 
 	private List<int[]> normalizeMultisets(List<int[]> multisets, boolean[] curOnlineStatus) {
 		//System.out.println("[normalizeMultisets 2] Total number of multiset=" + multisets.size()
@@ -511,6 +636,8 @@ public class ScheduleGenerator {
 		curState.numAsyncOp = origNumAsyncOp;
 		Arrays.fill(curState.nodeState, 0);
 		Arrays.fill(curState.onlineStatus, true);
+		Arrays.fill(curState.syncSources, -1);
+		Arrays.fill(curState.syncTargets, 0);
 		currentExploringPath.clear();
 		initPathLen = 0;
 	}
@@ -541,7 +668,9 @@ public class ScheduleGenerator {
 			DeviationPath dp = new DeviationPath(((DeviationPath) t.path).targetState);
 			retPT = new PathTuple(t.state, dp);
 		} else if (t.path instanceof ResyncPath) {
-			ResyncPath rp = new ResyncPath(((ResyncPath) t.path).devNode);
+			ResyncPath rp = new ResyncPath(((ResyncPath) t.path).devNode,
+					((ResyncPath) t.path).targetSyncSourcesChange,
+					((ResyncPath) t.path).targetSyncTargetsChange);
 			retPT = new PathTuple(t.state, rp);
 		}
 		return retPT;
@@ -622,9 +751,10 @@ public class ScheduleGenerator {
 
 	protected void writeSchedList(List<StrataSchedule> schedList) {
 		try {
-            File scheduleFile = new File(schedFileName);
+			File scheduleFile = new File(schedFileName);
             FileOutputStream fileOut = new FileOutputStream(scheduleFile);
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            System.out.println("writing a list of schedule object to file=" + schedFileName);
             //System.out.println("writing a list of schedule object...");
             for (StrataSchedule sched : schedList) {
             	out.writeObject(sched);
@@ -656,7 +786,9 @@ public class ScheduleGenerator {
 			in.close();
 		} catch (IOException i) {
 			//i.printStackTrace();
+			System.out.println("IOException while reading a file=" + schedFileName);
 			System.out.println("IOException occurred while reading objects. Treat it as EOF!");
+			System.out.println("This is not critical. We are using IOException for EOF");
 			return;
 		} catch (ClassNotFoundException c) {
 			System.out.println("Employee class not found");
@@ -805,7 +937,8 @@ public class ScheduleGenerator {
                 	schedFileName = schedFileNamePrefix + "-" + origNumAsyncOp + "AOP" + 
                 			"_" + origNumNode + "Nodes" + scheduleFileCount;
                 }
-                //System.out.println("Main path\n" + mainPath);
+                System.out.println("Main path\n" + mainPath);
+                findInitialPaths();
                 if (initialPaths.size() == 0) {
                 	if (!scheduleList.isEmpty()) {
                 		writeSchedList(scheduleList);
@@ -964,11 +1097,12 @@ public class ScheduleGenerator {
 		System.out.println("===================================================");
 		System.out.println("unit test 6: writeSchedule and readSchedules");
 		System.out.println("---------------------------------------------------");
-		ScheduleGenerator sgen = new ScheduleGenerator(1, 3, "/home/ben/project/vcon/scheduleGen/");
+		String scheduleDirectoryPath = "/home/ben/project/drmbt/testScheduleDir/"; 
+		ScheduleGenerator sgen = new ScheduleGenerator(1, 3, scheduleDirectoryPath);
 		System.out.println("6.1. testing reading the default schedule file");
 		sgen.readSchedList();
 		System.out.println("6.2. testing writing schedule list and read in");
-		System.out.println("writing the following schedule:\n" + sched1.toString());
+		//System.out.println("writing the following schedule:\n" + sched1.toString());
 		sgen.writeSchedList(tmpSchedList);
 		sgen.readSchedList();
 		
@@ -977,57 +1111,281 @@ public class ScheduleGenerator {
 		System.out.println("unit test 7: test schedule generation generating just 1 schedule");
 		System.out.println("---------------------------------------------------");
 		System.out.println("7.1. testing 1 async op with 3 nodes");
-		sgen = new ScheduleGenerator(1, 3, "/home/ben/project/vcon/scheduleGen/");
+		sgen = new ScheduleGenerator(1, 3, scheduleDirectoryPath);
 		sgen.generateSchedule();
 		System.out.println("7.2. testing 2 async op with 3 nodes");
-		sgen = new ScheduleGenerator(2,3, "/home/ben/project/vcon/scheduleGen/");
+		sgen = new ScheduleGenerator(2,3, scheduleDirectoryPath);
 		sgen.generateSchedule();
 		System.out.println("7.3. testing 6 async op with 3 nodes");
-		sgen = new ScheduleGenerator(6,3, "/home/ben/project/vcon/scheduleGen/");
+		sgen = new ScheduleGenerator(6,3, scheduleDirectoryPath);
 		sgen.generateSchedule();
 		System.out.println("7.4. testing 6 async op with 5 nodes");
-		sgen = new ScheduleGenerator(6,5, "/home/ben/project/vcon/scheduleGen/");
+		sgen = new ScheduleGenerator(6,5, scheduleDirectoryPath);
 		sgen.generateSchedule();
 		
 		// unit test 8: test schedule generation for more than 1 schedules
 		System.out.println("===================================================");
 		System.out.println("unit test 8: test schedule generation generating just 1 schedule");
 		System.out.println("---------------------------------------------------");
-		System.out.println("8.1. testing 1 async op with 3 nodes for two schedules");
-		sgen = new ScheduleGenerator(1, 3, "/home/ben/project/vcon/scheduleGen/");
+		System.out.println("8.1. testing 1 async op with 3 nodes");
+		sgen = new ScheduleGenerator(1, 3, scheduleDirectoryPath);
 		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		System.out.println("1 Schedule Generated\n");
+		//sgen.findInitialPaths();
 		
-		sgen.currentInitPath = sgen.initialPaths.removeFirst();
-		sgen.resetTest();
-		sgen.replayInitPath();
-		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		// unit test 9: test schedule generation until nothing more to generate
+		System.out.println("===================================================");
+		System.out.println("unit test 9: test schedule generation until nothing more to generate");
+		System.out.println("---------------------------------------------------");
 		
-		sgen.currentInitPath = sgen.initialPaths.removeFirst();
-		sgen.resetTest();
-		sgen.replayInitPath();
-		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		int i = 1;
+		while (!sgen.initialPaths.isEmpty()) {
+			sgen.currentInitPath = sgen.initialPaths.removeFirst();
+			sgen.resetTest();
+			sgen.replayInitPath();
+			sgen.generateSchedule();
+			System.out.println((i++) + " Schedule Generated\n");
+			//sgen.findInitialPaths();
+		}
 		
-		sgen.currentInitPath = sgen.initialPaths.removeFirst();
-		sgen.resetTest();
-		sgen.replayInitPath();
-		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		// unit test 10: test if we can get all expected set of nodes to resync for the given states 
+		System.out.println("===================================================");
+		System.out.println("unit test 10: test devNodeCombi generation, filtering symmetric pairs and getAllDevNodeResyncPaths works");
+		System.out.println("---------------------------------------------------");
+		System.out.println("10.1.a. testing after divergence and no resync has been done");
+		System.out.println("See if I have [0,1]");
+		int[] tmpNodeState = new int[] {0, 0, 0, 1};
+		tmpOnlineStatus = new boolean[] {false, false, false, false};
+		int[] tmpSyncSources = new int[] {-1, -1, -1, -1};
+		int[] tmpSyncTargets = new int[] {0, 0, 0, 0};
+		List<int[]> tmpDevNodeCombi = getAllDevNodeCombiHelper(tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		boolean foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {0,1})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [0,1]");
+		} else {
+			System.out.println("We DON'T have [0,1]");
+		}
+		System.out.println("10.1.b. after filtering..");
+		filterOutSymmetricPairs(tmpDevNodeCombi, tmpNodeState, tmpSyncSources, tmpSyncTargets);
+		System.out.println("AFTER Filtering:");
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {0,1})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [0,1]");
+		} else {
+			System.out.println("We DON'T have [0,1]");
+		}
+		System.out.println("10.1.c. Testing getAllDevNodeResycnPaths");
+		System.out.println("For [0,1]:");
+		List<ResyncPath> tmpResyncPaths = getAllDevNodeResyncPaths(new int[] {0,1}, tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		for (ResyncPath rp : tmpResyncPaths) {
+			System.out.println("ResyncPath's=" + rp.toString());
+		}
+			
+		System.out.println("10.2.a. testing after divergence and resync was done once");
+		System.out.println("See if I have [2]");
+		tmpNodeState = new int[] {1000, 1000, 0, 1};
+		tmpOnlineStatus = new boolean[] {true, true, false, false};
+		tmpSyncSources = new int[] {-1, 0, -1, -1};
+		tmpSyncTargets = new int[] {0b0010, 0, 0, 0};
+		tmpDevNodeCombi = getAllDevNodeCombiHelper(tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {2})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [2]");
+		} else {
+			System.out.println("We DON'T have [2]");
+		}
+		System.out.println("10.2.b. after filtering..");
+		filterOutSymmetricPairs(tmpDevNodeCombi, tmpNodeState, tmpSyncSources, tmpSyncTargets);
+		System.out.println("AFTER Filtering:");
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {2})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [2]");
+		} else {
+			System.out.println("We DON'T have [2]");
+		}
+		System.out.println("10.2.c. Testing getAllDevNodeResycnPaths");
+		System.out.println("For [2]:");
+		tmpResyncPaths = getAllDevNodeResyncPaths(new int[] {2}, tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		for (ResyncPath rp : tmpResyncPaths) {
+			System.out.println("ResyncPath's=" + rp.toString());
+		}
 		
-		sgen.currentInitPath = sgen.initialPaths.removeFirst();
-		sgen.resetTest();
-		sgen.replayInitPath();
-		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		System.out.println("10.3.a. testing after divergence was done twice and resync was done twice");
+		System.out.println("See if I have [0,1]");
+		tmpNodeState = new int[] {2001, 2001, 2001, 1};
+		tmpOnlineStatus = new boolean[] {false, false, false, false};
+		tmpSyncSources = new int[] {-1, 0, 1, -1};
+		tmpSyncTargets = new int[] {0b0010, 0b0100, 0, 0};
+		tmpDevNodeCombi = getAllDevNodeCombiHelper(tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {0,1})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [0,1]");
+		} else {
+			System.out.println("We DON'T have [0,1]");
+		}
+		System.out.println("10.3.b. after filtering..");
+		filterOutSymmetricPairs(tmpDevNodeCombi, tmpNodeState, tmpSyncSources, tmpSyncTargets);
+		System.out.println("AFTER Filtering:");
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {0,1})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [0,1]");
+		} else {
+			System.out.println("We DON'T have [0,1]");
+		}
+		System.out.println("10.3.c. Testing getAllDevNodeResycnPaths");
+		System.out.println("For [0,1]:");
+		tmpResyncPaths = getAllDevNodeResyncPaths(new int[] {0,1}, tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		for (ResyncPath rp : tmpResyncPaths) {
+			System.out.println("ResyncPath's=" + rp.toString());
+		}
 		
-		sgen.currentInitPath = sgen.initialPaths.removeFirst();
-		sgen.resetTest();
-		sgen.replayInitPath();
-		sgen.generateSchedule();
-		sgen.findInitialPaths();
+		System.out.println("10.4.a. testing after divergence was done twice and resync was done three times");
+		System.out.println("See if I have [3]");
+		tmpNodeState = new int[] {3000, 3000, 2001, 1};
+		tmpOnlineStatus = new boolean[] {true, true, false, false};
+		tmpSyncSources = new int[] {-1, 0, 1, -1};
+		tmpSyncTargets = new int[] {0b0010, 0b0100, 0, 0};
+		tmpDevNodeCombi = getAllDevNodeCombiHelper(tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {3})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [3]");
+		} else {
+			System.out.println("We DON'T have [3]");
+		}
+		System.out.println("10.4.b. after filtering..");
+		filterOutSymmetricPairs(tmpDevNodeCombi, tmpNodeState, tmpSyncSources, tmpSyncTargets);
+		System.out.println("AFTER Filtering:");
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {3})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [3]");
+		} else {
+			System.out.println("We DON'T have [3]");
+		}
+		System.out.println("10.4.c. Testing getAllDevNodeResycnPaths");
+		System.out.println("For [3]:");
+		tmpResyncPaths = getAllDevNodeResyncPaths(new int[] {3}, tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		for (ResyncPath rp : tmpResyncPaths) {
+			System.out.println("ResyncPath's=" + rp.toString());
+		}
 		
+		System.out.println("10.5.a. testing after divergence was done twice and resync was done four times");
+		System.out.println("See if I have [2]");
+		tmpNodeState = new int[] {4000, 4000, 2001, 4000};
+		tmpOnlineStatus = new boolean[] {true, true, false, true};
+		tmpSyncSources = new int[] {3, 0, 1, -1};
+		tmpSyncTargets = new int[] {0b0010, 0b0100, 0, 0b0001};
+		tmpDevNodeCombi = getAllDevNodeCombiHelper(tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {2})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [2]");
+		} else {
+			System.out.println("We DON'T have [2]");
+		}
+		System.out.println("10.5.b. after filtering..");
+		filterOutSymmetricPairs(tmpDevNodeCombi, tmpNodeState, tmpSyncSources, tmpSyncTargets);
+		System.out.println("AFTER Filtering:");
+		foundExpected = false;
+		for (int[] dnc : tmpDevNodeCombi) {
+			System.out.println("DevNodeCombi's=" + Arrays.toString(dnc));
+			if (Arrays.equals(dnc, new int[] {2})) {
+				foundExpected = true;
+			}
+		}
+		if (foundExpected) {
+			System.out.println("We have [2]");
+		} else {
+			System.out.println("We DON'T have [2]");
+		}
+		System.out.println("10.5.c. Testing getAllDevNodeResycnPaths");
+		System.out.println("For [2]:");
+		tmpResyncPaths = getAllDevNodeResyncPaths(new int[] {2}, tmpNodeState, tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		for (ResyncPath rp : tmpResyncPaths) {
+			System.out.println("ResyncPath's=" + rp.toString());
+		}
+		System.out.println("10.5.d. Testing filterRepeatedDevNodeResyncPaths");
+		List<ResyncPath> filteredResyncPaths = filterRepeatedDevNodeResyncPaths(tmpResyncPaths);
+		for (ResyncPath rp : filteredResyncPaths) {
+			System.out.println("filtered ResyncPath's=" + rp.toString());
+		}
+
+		// unit test 11: test if hasCycle works 
+		System.out.println("===================================================");
+		System.out.println("unit test 11: test hasCycle");
+		System.out.println("---------------------------------------------------");
+		tmpSyncSources = new int[] {-1,0,0,-1};
+		int[] restartedNode = new int[] {3};
+		System.out.println("For the given syncSources=" + Arrays.toString(tmpSyncSources) 
+			+ " and for the restarted node=" + Arrays.toString(restartedNode) 
+			+ ", the result of hasCycle=" + hasCycle(tmpSyncSources, restartedNode[0]));
+		
+
+		// unit test 12: test if getAllDevNodeResyncPaths works 
+		System.out.println("===================================================");
+		System.out.println("unit test 11: test getAllDevNodeResyncPaths");
+		System.out.println("---------------------------------------------------");
+		tmpNodeState = new int[] {3001, 3001, 3001, 1};
+		tmpOnlineStatus = new boolean[] {true, true, true, false};
+		tmpSyncSources = new int[] {-1, 0, 0, -1};
+		tmpSyncTargets = new int[] {0b0110, 0, 0, 0};
+		tmpResyncPaths = getAllDevNodeResyncPaths(new int[] {3}, tmpNodeState,
+				tmpOnlineStatus, tmpSyncSources, tmpSyncTargets);
+		for (ResyncPath rp : tmpResyncPaths) {
+			System.out.println("ResyncPath's=" + rp.toString());
+		}
 		
 		/*System.out.println("8.2. testing 1 async op with 3 nodes for three schedules");
 		sgen = new ScheduleGenerator(2,3);

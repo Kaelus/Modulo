@@ -30,7 +30,9 @@ public class PathTuple implements Serializable {
 			DeviationPath dp = new DeviationPath(((DeviationPath) path).targetState);
 			retPT = new PathTuple(this.state, dp);
 		} else if (path instanceof ResyncPath) {
-			ResyncPath rp = new ResyncPath(((ResyncPath) path).devNode);
+			ResyncPath rp = new ResyncPath(((ResyncPath) path).devNode,
+					((ResyncPath) path).targetSyncSourcesChange,
+					((ResyncPath) path).targetSyncTargetsChange);
 			retPT = new PathTuple(this.state, rp);
 		}
 		return retPT;

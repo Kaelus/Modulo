@@ -487,7 +487,7 @@ public class CassandraSystemControllerBACKUP extends SystemController {
 	}
 
 	@Override
-	public void waitBeforeVerification() {
+	public void triggerResyncPath(int[] targetSyncSourcesChange) {
 		// TODO Auto-generated method stub
 		
 	}

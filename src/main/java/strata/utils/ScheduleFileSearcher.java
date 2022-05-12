@@ -3,6 +3,7 @@ package strata.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -25,9 +26,9 @@ import strata.common.StrataSchedule;
  */
 public class ScheduleFileSearcher {
 
-	static String hayScheduleFilePath = "/home/ben/project/drmbt/scheduleGen/schedules_zk_3.4.11_q-c-drm/scheduleFile-5-3";
+	static String hayScheduleFilePath = "/home/ben/project/drmbt/scheduleGen/schedules_redis-2.8.0_s-s-drm/scheduleFile-2-4";
 	
-	static String needleScheduleFilePath = "/home/ben/experiment/zk_performance_measure/test-5-3-ZooKeeper-3.4.11-strata-0.1/progSched";
+	static String needleScheduleFilePath = "/home/ben/experiment/redis_performance_measure/2694/test-2-4-Redis-2.8.0-strata-0.1/progSched";
 	static StrataSchedule needleSchedule;
 	
 	public static void loadNeedleSchedule() {
@@ -50,14 +51,35 @@ public class ScheduleFileSearcher {
 			    		Path devPath = new DeviationPath(ts);
 			    		needleSchedule.sched.add(devPath);
 			    	} else if (typeStr.equals("RESYNC")) {
-			    		String rawDNStr = strTokens[2];
+			    		//System.out.println("strTokens" + Arrays.toString(strTokens));
+			    		String rawDNStr = strTokens[2].split("]")[0];
+			    		//System.out.println("rawDNStr=" + rawDNStr);
 			    		String filteredDNStr = rawDNStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		//System.out.println("filteredDNStr=" + filteredDNStr);
 			    		String[] dnStrArr = filteredDNStr.split(" ");
 			    		int[] dn = new int[dnStrArr.length];
 			    		for (int i = 0; i < dn.length; i++) {
 			    			dn[i] = Integer.parseInt(dnStrArr[i]);
 			    		}
-			    		Path resyncPath = new ResyncPath(dn);
+			    		String rawSourcesStr = strTokens[3].split("]")[0];
+			    		//System.out.println("rawSourcesStr=" + rawSourcesStr);
+			    		String filteredSourcesStr = rawSourcesStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		//System.out.println("filteredSourcesStr=" + filteredSourcesStr);
+			    		String[] sourcesStrArr = filteredSourcesStr.split(" ");
+			    		int[] syncSources = new int[sourcesStrArr.length];
+			    		for (int i = 0; i < syncSources.length; i++) {
+			    			syncSources[i] = Integer.parseInt(sourcesStrArr[i]);
+			    		}
+			    		String rawTargetsStr = strTokens[4];
+			    		//System.out.println("rawTargetsStr=" + rawTargetsStr);
+			    		String filteredTargetsStr = rawTargetsStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		//System.out.println("filteredTargetsStr=" + filteredTargetsStr);
+			    		String[] targetsStrArr = filteredTargetsStr.split(" ");
+			    		int[] syncTargets = new int[targetsStrArr.length];
+			    		for (int i = 0; i < syncTargets.length; i++) {
+			    			syncTargets[i] = Integer.parseInt(targetsStrArr[i]);
+			    		}
+			    		Path resyncPath = new ResyncPath(dn, syncSources, syncTargets);
 			    		needleSchedule.sched.add(resyncPath);
 			    	} else {
 			    		System.err.println("Parse Error!");
@@ -65,6 +87,9 @@ public class ScheduleFileSearcher {
 			    	}
 			    }
 			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("FileNotFoundException!!");
+			System.exit(1);
 		} catch (IOException ioe) {
 			//log.warn("IOException occurred while reading objects. Treat it as EOF!");
 			System.out.println("EOF! We read all Schedules in this file");
@@ -80,6 +105,10 @@ public class ScheduleFileSearcher {
 		LinkedList<StrataSchedule> currentSchedules = null;
 		loadNeedleSchedule();
 		System.out.println("loaded needle schedule=" + needleSchedule.toString());
+		if (needleSchedule.sched.isEmpty()) {
+			System.err.println("ASSERTION: needleSchedule.sched is empty!");
+			System.exit(1);
+		}
 		File[] fileList = folder.listFiles();
 		Arrays.sort(fileList, new Comparator<File>() {
             @Override
