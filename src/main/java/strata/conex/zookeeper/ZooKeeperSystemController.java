@@ -19,7 +19,6 @@ import strata.conex.TestingEngine;
 
 public class ZooKeeperSystemController extends SystemController {
 
-	/*
 	protected String sutSrcDir; //= "/home/kroud2/bhkim/zookeeper"; // "/home/ben/project/zookeeper-hacking/zookeeper"; // HARD-CODED
 	protected String libClasspath; 
 		//= ":" + TestingEngine.workingDir
@@ -36,11 +35,7 @@ public class ZooKeeperSystemController extends SystemController {
 
 	protected String updatedClasspath = null;
 	protected String sutLogConfig;
-	 */
-	protected String libClasspath;
-	protected String deployScriptDir;
 
-	
         public static int CONNECTION_TIMEOUT = 30000;
 
         final int clientPorts[] = new int[numNode];
@@ -59,15 +54,10 @@ public class ZooKeeperSystemController extends SystemController {
 	public boolean[] isNodeOnline;
 	public int actualLeader = -1;
 	
-	/*static final String[] CMD = { "java", "-cp", "%s", "-Xmx1G",
+	static final String[] CMD = { "java", "-cp", "%s", "-Xmx1G",
 	        "-Dzookeeper.log.dir=%s/log/%d", "-Dapple.awt.UIElement=true", 
 	        "-Dlog4j.configuration=%s", "org.apache.zookeeper.server.quorum.QuorumPeerMain", 
 	        "conf/%d" }; // HARD-CODED
-	*/
-	static final String[] CMD = { "java", "-cp", "%s", "-Xmx1G",
-        "-Dzookeeper.log.dir=%s/log/%d", "-Dapple.awt.UIElement=true", 
-        "-Dlog4j.configuration=file://%s/conf/%d/%s", "org.apache.zookeeper.server.quorum.QuorumPeerMain", 
-        "conf/%d/zoo.cfg" };
 	
 	public ZooKeeperSystemController(int numNode, String workingdir) {
 		super(numNode, workingdir);
@@ -90,7 +80,7 @@ public class ZooKeeperSystemController extends SystemController {
 		try (BufferedReader br = new BufferedReader(new FileReader(confFile))) {
 		    String line;
 		    while ((line = br.readLine()) != null) {
-		       /*if (line.startsWith("sutSrcDir")) {
+		       if (line.startsWith("sutSrcDir")) {
 		    	   String[] tokens = line.split("=");
 		    	   sutSrcDir = tokens[1];
 		    	   System.out.println("sutSrcDir=" + sutSrcDir);
@@ -104,17 +94,7 @@ public class ZooKeeperSystemController extends SystemController {
 		       } else if (line.startsWith("sutLogConfig")) {
 		    	   String[] tokens = line.split("=");
 		    	   sutLogConfig = tokens[1];
-		       } else */
-		    	if (line.startsWith("libClasspath")) {
-			       String[] tokens = line.split("=");
-			       libClasspath = tokens[1];
-			       System.out.println("tokens[1]=" + tokens[1]);
-			       System.out.println("libClasspath=" + libClasspath);
-			    } else if (line.startsWith("deployScriptDir")) { 
-			    	   String[] tokens = line.split("=");
-			    	   deployScriptDir = tokens[1];
-			    	   System.out.println("deployScriptDir=" + deployScriptDir);
-			   } else if (line.startsWith("waitForCommitDuration")) {
+		       } else if (line.startsWith("waitForCommitDuration")) {
 		    	   String[] tokens = line.split("=");
 		    	   waitForCommitDuration = Integer.parseInt(tokens[1]);
 		       } else if (line.startsWith("waitForResyncDuration")) {
@@ -153,33 +133,6 @@ public class ZooKeeperSystemController extends SystemController {
 
 	@Override
 	public void prepareTestingEnvironment() {
-		// run the setup.sh script to prepare all the environment settings
-		String[] setupCmd = { "./setup.sh", "%s", "%s" };
-		setupCmd[1] = String.format(setupCmd[1], numNode);
-		setupCmd[2] = String.format(setupCmd[2], workingDir);
-		ProcessBuilder builder = new ProcessBuilder();
-		builder.directory(new File(deployScriptDir));
-		try {
-			System.out.println("Invoking CMD=\n" + String.join(" ", setupCmd));
-			Process p = builder.command(setupCmd).start();
-			p.waitFor();
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(1);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
-		int nextPort = 12180;
-		for(int i = 0; i < numNode; i++) {
-  	        clientPorts[i] = nextPort++;
-		}   
-		for (int i = 0; i < numNode; i++) {
-			logFileNames[i] = workingDir + "/log" + "/" + i + "/" + logFileName;
-		}
-		
-		
-		/*
 		System.out.println("setupEnvironment");
 		File confDirFile = new File(workingDir + "/conf");
 		System.out.println("checking directory for nodes' configuration files");
@@ -287,16 +240,15 @@ public class ZooKeeperSystemController extends SystemController {
 		        }
 			}
 		}
-  	    */
-		
+  	    
   	    /*
   	     * update the classpath
   	     */
 		//String addClasspath = sutSrcDir + "/.eclipse/classes-main";
 		//addClasspath = addClasspath + ":" + homeDir;
 		//updatedClasspath = System.getenv("CLASSPATH") + ":" + addClasspath + libClasspath;
-  	    //updatedClasspath = System.getenv("CLASSPATH") + libClasspath;
-		//System.out.println("updated classpath=" + updatedClasspath);
+  	    updatedClasspath = System.getenv("CLASSPATH") + libClasspath;
+		System.out.println("updated classpath=" + updatedClasspath);
 		
 	}
 	
@@ -383,11 +335,6 @@ public class ZooKeeperSystemController extends SystemController {
 	@Override
 	public void startEnsemble() {
 		System.out.println("startEnsemble");
-		for (int i = 0; i < numNode; i++) {
-			startNode(i);
-		}
-		
-		/*
 		ProcessBuilder builder = new ProcessBuilder();
 		builder.directory(new File(workingDir));
 		for (int i = 0; i < numNode; ++i) {
@@ -412,7 +359,6 @@ public class ZooKeeperSystemController extends SystemController {
 			e.printStackTrace();
 		}
 		Arrays.fill(isNodeOnline, true);
-		*/
 	}
 
 	@Override
@@ -470,9 +416,9 @@ public class ZooKeeperSystemController extends SystemController {
 		
 		// start the node now
 		String[] cmd = Arrays.copyOf(CMD, CMD.length);
-		cmd[2] = String.format(cmd[2], libClasspath);
+		cmd[2] = String.format(cmd[2], updatedClasspath);
 		cmd[4] = String.format(cmd[4], workingDir, id);
-		cmd[6] = String.format(cmd[6], workingDir, id, "zk_log.properties");
+		cmd[6] = String.format(cmd[6], "zk_log.properties"); // HARD-CODED
         cmd[8] = String.format(cmd[8], id);
         System.out.println("Starting node " + id);
         try {
@@ -834,13 +780,6 @@ public class ZooKeeperSystemController extends SystemController {
 	@Override
 	public void afterResyncPath() {
 		// NOP
-		
-	}
-
-
-	@Override
-	public void waitBeforeVerification() {
-		// TODO Auto-generated method stub
 		
 	}
 

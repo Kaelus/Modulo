@@ -437,7 +437,8 @@ public class MongoSystemController extends SystemController {
 		System.out.println("Received replSetConfig as follow=" + rsConfigDoc.toJson());
 		Document rsSettings = (Document) rsConfigDoc.get("settings");
 		System.out.println("rsSettings are=" + rsSettings);
-		rsSettings.put("chainingAllowed", false);
+		//rsSettings.put("chainingAllowed", false);
+		rsSettings.put("chainingAllowed", true);
 		rsConfigDoc.put("version", (rsConfigDoc.getInteger("version") + 1));
 		System.out.println("Reconfig as follow=" + rsConfigDoc.toJson());
 		//adminDB.runCommand(new Document("replSetReconfig", rsConfigDoc));
@@ -788,7 +789,7 @@ public class MongoSystemController extends SystemController {
 				return retNullStr.getBytes();
 			} else {
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1398,6 +1399,8 @@ public class MongoSystemController extends SystemController {
 		//defaultHeartbeatTimeoutSecs = (int) rsConfigDoc.get("settings.heartbeatTimeoutSecs");
 		
 		rsSettings.put("heartbeatTimeoutSecs", augmentedHeartbeatTimeoutSecs);
+		// version 3.0.0 specific chainingAllowed parameter
+		//rsSettings.put("chainingAllowed", false);
 		rsConfigDoc.put("settings", rsSettings);
 		//rsConfigDoc.put("settings.heartbeatTimeoutSecs", augmentedHeartbeatTimeoutSecs);
 		rsConfigDoc.put("version", (rsConfigDoc.getInteger("version") + 1));
@@ -1426,12 +1429,6 @@ public class MongoSystemController extends SystemController {
 	@Override
 	public void afterResyncPath() {
 		// NOP
-		
-	}
-
-	@Override
-	public void waitBeforeVerification() {
-		// TODO Auto-generated method stub
 		
 	}
 	

@@ -34,6 +34,4 @@ public abstract class SystemController {
 	abstract public void afterDivergencePath();
 	abstract public void beforeResyncPath();
 	abstract public void afterResyncPath();
-	abstract public void waitBeforeVerification();
-	
 }

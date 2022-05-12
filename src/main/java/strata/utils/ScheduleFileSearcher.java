@@ -25,9 +25,9 @@ import strata.common.StrataSchedule;
  */
 public class ScheduleFileSearcher {
 
-	static String hayScheduleFilePath = "/home/ben/project/drmbt/scheduleGen/schedules_zk_3.4.11_q-c-drm/scheduleFile-5-3";
+	static String hayScheduleFilePath = "/home/ben/project/strata/scheduleGen/scheduleFile-5-3";
 	
-	static String needleScheduleFilePath = "/home/ben/experiment/zk_performance_measure/test-5-3-ZooKeeper-3.4.11-strata-0.1/progSched";
+	static String needleScheduleFilePath = "/home/ben/project/strata/test-5-3-ZooKeeper-3.4.11-strata-0.1/progSched";
 	static StrataSchedule needleSchedule;
 	
 	public static void loadNeedleSchedule() {

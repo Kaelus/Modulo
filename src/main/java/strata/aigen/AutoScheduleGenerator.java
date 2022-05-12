@@ -13,20 +13,58 @@ public class AutoScheduleGenerator {
 		System.out.println("number of async op using=" + numAsyncOp);
 		System.out.println("number of nodes using=" + numNode);
 		System.out.println("directory to store schedule files=" + schedDir);
+
+		//stats BEGIN
+		int curExploringPathLength = -1;
+		int shortestSchedLength = 10000;
+		int longestSchedLength = -1;
+		int cumSchedLength = -1;
+		int cumSchedCounts = 0;
+		//stats END
+		
 		ScheduleGenerator sgen = new ScheduleGenerator(numAsyncOp, numNode, schedDir);
 		sgen.generateSchedule();
 		sgen.findInitialPaths();
+		
+		//stats BEGIN
+		curExploringPathLength = sgen.currentExploringPath.size();
+		if (curExploringPathLength < shortestSchedLength) {
+			shortestSchedLength = curExploringPathLength;
+		}
+		if (curExploringPathLength > longestSchedLength) {
+			longestSchedLength = curExploringPathLength;
+		}
+		cumSchedLength += curExploringPathLength;
+		cumSchedCounts++;
+		//stats END
+				
 		
 		while(!sgen.initialPaths.isEmpty()) {
 			sgen.currentInitPath = sgen.initialPaths.removeFirst();
 			sgen.resetTest();
 			sgen.replayInitPath();
 			sgen.generateSchedule();
+			// stats BEGIN
+			curExploringPathLength = sgen.currentExploringPath.size();
+			if (curExploringPathLength < shortestSchedLength) {
+				shortestSchedLength = curExploringPathLength;
+			}
+			if (curExploringPathLength > longestSchedLength) {
+				longestSchedLength = curExploringPathLength;
+			}
+			cumSchedLength += curExploringPathLength;
+			cumSchedCounts++;
+			// stats END
 			sgen.findInitialPaths();
 			if (sgen.uniqSchedCnt % 10000 == 0) {
 				System.out.println("count=" + sgen.uniqSchedCnt);
 			}
 		}
+		System.out.println("shortestSchedLength=" + shortestSchedLength);
+		System.out.println("longestSchedLength=" + longestSchedLength);
+		System.out.println("cumSchedLength=" + cumSchedLength);
+		System.out.println("cumSchedCounts=" + cumSchedCounts);
+		System.out.println("averageSchedLength=" + (cumSchedLength / cumSchedCounts));
 		System.out.println("Number of generated schedule (unique) = " + sgen.uniqSchedCnt);
 		System.out.println("Number of duplicated schedule (abandoned) = " + sgen.dupSchedCnt);
 	}

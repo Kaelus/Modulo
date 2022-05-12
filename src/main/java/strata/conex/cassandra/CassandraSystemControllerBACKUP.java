@@ -485,11 +485,5 @@ public class CassandraSystemControllerBACKUP extends SystemController {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
-	@Override
-	public void waitBeforeVerification() {
-		// TODO Auto-generated method stub
-		
-	}
 	
 }
