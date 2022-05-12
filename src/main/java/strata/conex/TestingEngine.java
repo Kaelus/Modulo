@@ -23,7 +23,6 @@ import strata.conex.mongo.MongoSystemController;
 import strata.conex.redis.RedisSystemController;
 import strata.conex.zookeeper.ZooKeeperSystemController;
 import strata.utils.ObjectCopy;
-import strata.utils.ScheduleExecutionStatMeasurer;
 
 public class TestingEngine {
 	
@@ -60,7 +59,6 @@ public class TestingEngine {
 	int base;
 	int vCnt;
 	public static boolean debugMode = false;
-	public static boolean interruptMode = false;
 	public static boolean programMode = false;
 	Scanner reader = null;
 	
@@ -223,12 +221,6 @@ public class TestingEngine {
 		ArrayList<StrataSchedule> buggySchedules = new ArrayList<StrataSchedule>();
 		int numTestCases = 0;
 		
-		// stat collection variable declaration
-		ScheduleExecutionStatMeasurer statMgr;
-		int schedExecDurStatID;
-		long schedExecDur;
-		ArrayList<Integer> arrayOfStatIDs;
-		
 		System.out.println("Start Testing!");
 		System.out.println("=============================================================================");
 		for (File curSchedFile : scheduleFiles) {
@@ -258,10 +250,6 @@ public class TestingEngine {
 		        controller.prepareTestingEnvironment();
 		        initializeTesting();
 				saveAbstractSchedule(sched);
-				// init stat collection
-				statMgr = new ScheduleExecutionStatMeasurer();
-				schedExecDurStatID = statMgr.startTimeMeasure("ScheduleExecutionDuration");
-				// start a schedule execution
 				boolean schedExecResult = executeSchedule(sched);
 				if (schedExecResult) {
 					if (result = invariantCheck()) {
@@ -274,12 +262,6 @@ public class TestingEngine {
 				} else {
 					resultStr = "incomplete";
 				}
-				// collect a stat and save the stat into a stat file
-				schedExecDur = statMgr.endTimeMeasure(schedExecDurStatID);
-				arrayOfStatIDs = new ArrayList<Integer>();
-				arrayOfStatIDs.add(schedExecDurStatID);
-				statMgr.printSimpleStatsToFile(strataIdRecordDirPath + "/performance.stat", arrayOfStatIDs);
-				// saveResult
 				System.out.println("result=" + resultStr);
 				saveResult(resultStr + "\n");
 				saveScheduleExecuted(sched);
@@ -435,7 +417,7 @@ public class TestingEngine {
 		boolean pathExplorationResult = false;
 		pathCounter = 0;
 		for (Path path : sched.getSchedule()) {
-			if (debugMode && interruptMode) {
+			if (debugMode) {
 				System.out.println("Press 1 and Enter to explore the next path: " + path.toString());
 	    		reader.nextInt();
 			}
@@ -760,11 +742,6 @@ public class TestingEngine {
 				configFile = args[i+1];
 			} else if (arg.equals("-d") && i < args.length - 1) {
 				System.out.println("debugMode enabled");
-				tmpTestNum = Integer.parseInt(args[i+1]);
-				debugMode = true;
-				interruptMode = true;
-			} else if (arg.equals("-n") && i < args.length - 1) {
-				System.out.println("non-interruptible debug Mode enabled");
 				tmpTestNum = Integer.parseInt(args[i+1]);
 				debugMode = true;
 			} else if (arg.equals("-i")) {
