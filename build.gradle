@@ -12,8 +12,8 @@ apply plugin: 'eclipse'
 //}
 
 version = '1.0'
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
@@ -35,9 +35,7 @@ dependencies {
     compile 'org.mongodb:mongodb-driver:3.6.0'
     //compile 'org.mongodb:mongodb-driver:3.1.0'
     compile 'org.apache.zookeeper:zookeeper:3.4.11'
-    compile 'com.datastax.oss:java-driver-core:4.3.1'
-    compile 'com.datastax.oss:java-driver-query-builder:4.3.1'
-    compile 'com.datastax.oss:java-driver-mapper-runtime:4.3.1'
+ 	compile 'io.lettuce:lettuce-core:5.0.3.RELEASE'
 }
 
 [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all']
