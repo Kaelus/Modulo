@@ -3,6 +3,7 @@ package strata.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,8 +13,10 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import strata.common.DeviationPath;
+import strata.common.DeviationPath.FailureType;
 import strata.common.Path;
 import strata.common.ResyncPath;
+import strata.common.ResyncPath.ResyncType;
 import strata.common.StrataSchedule;
 
 /**
@@ -25,9 +28,9 @@ import strata.common.StrataSchedule;
  */
 public class ScheduleFileSearcher {
 
-	static String hayScheduleFilePath = "/home/ben/project/drmbt/scheduleGen/schedules_zk_3.4.11_q-c-drm/scheduleFile-5-3";
+	static String hayScheduleFilePath = "/home/ben/project/drmbt/scheduleGen/scheduleFile-1-2";
 	
-	static String needleScheduleFilePath = "/home/ben/experiment/zk_performance_measure/test-5-3-ZooKeeper-3.4.11-strata-0.1/progSched";
+	static String needleScheduleFilePath = "/home/ben/experiment/test-1-2-Redis-4.0.0-strata-0.1/progSched";
 	static StrataSchedule needleSchedule;
 	
 	public static void loadNeedleSchedule() {
@@ -40,24 +43,90 @@ public class ScheduleFileSearcher {
 			    	String[] strTokens = line.split("=");
 			    	String typeStr = strTokens[1].split(" ")[0];
 			    	if (typeStr.equals("DEVIATION")) {
-			    		String rawTSStr = strTokens[2];
+			    		System.out.println("strTokens=" + Arrays.toString(strTokens));
+			    		String rawTSStr = strTokens[2].split("]")[0];
+			    		System.out.println("rawTSStr=" + rawTSStr);
 			    		String filteredTSStr = rawTSStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		System.out.println("filteredTSStr=" + filteredTSStr);
 			    		String[] tsStrArr = filteredTSStr.split(" ");
 			    		int[] ts = new int[tsStrArr.length];
 			    		for (int i = 0; i < ts.length; i++) {
 			    			ts[i] = Integer.parseInt(tsStrArr[i]);
 			    		}
-			    		Path devPath = new DeviationPath(ts);
+			    		String rawFSStr = strTokens[3].split("]")[0];
+			    		System.out.println("rawFSStr=" + rawFSStr);
+			    		String filteredFSStr = rawFSStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		System.out.println("filteredFSStr=" + filteredFSStr);
+			    		String[] fsStrArr = filteredFSStr.split(" ");
+			    		FailureType[] fs = new FailureType[fsStrArr.length];
+			    		for (int i = 0; i < fs.length; i++) {
+			    			if (fsStrArr[i].equals("NONE")) {
+			    				fs[i] = DeviationPath.FailureType.NONE;
+			    			} else if (fsStrArr[i].equals("CRASH")) {
+			    				fs[i] = DeviationPath.FailureType.CRASH;
+			    			} else if (fsStrArr[i].equals("DISCON")) {
+			    				fs[i] = DeviationPath.FailureType.DISCON;
+			    			} else {
+			    				System.err.println("ASSERT: unknown failure type=" + fsStrArr[i]);
+			    				System.exit(1);			    				
+			    			}			    			
+			    		}
+			    		Path devPath = new DeviationPath(ts, fs);
+			    		System.out.println("deviation path=" + devPath.toString());
 			    		needleSchedule.sched.add(devPath);
 			    	} else if (typeStr.equals("RESYNC")) {
-			    		String rawDNStr = strTokens[2];
+			    		System.out.println("strTokens" + Arrays.toString(strTokens));
+			    		String rawDNStr = strTokens[2].split("]")[0];
+			    		System.out.println("rawDNStr=" + rawDNStr);
 			    		String filteredDNStr = rawDNStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		System.out.println("filteredDNStr=" + filteredDNStr);
 			    		String[] dnStrArr = filteredDNStr.split(" ");
 			    		int[] dn = new int[dnStrArr.length];
 			    		for (int i = 0; i < dn.length; i++) {
 			    			dn[i] = Integer.parseInt(dnStrArr[i]);
 			    		}
-			    		Path resyncPath = new ResyncPath(dn);
+			    		String rawSourcesStr = strTokens[3].split("]")[0];
+			    		System.out.println("rawSourcesStr=" + rawSourcesStr);
+			    		String filteredSourcesStr = rawSourcesStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		System.out.println("filteredSourcesStr=" + filteredSourcesStr);
+			    		String[] sourcesStrArr = filteredSourcesStr.split(" ");
+			    		int[] syncSources;
+			    		if (sourcesStrArr[0].equals("null")) {
+			    			syncSources = null;
+			    		} else {
+			    			syncSources = new int[sourcesStrArr.length];
+			    			for (int i = 0; i < syncSources.length; i++) {
+						    	syncSources[i] = Integer.parseInt(sourcesStrArr[i]);
+						    }
+			    		}
+			    		String rawTargetsStr = strTokens[4];
+			    		System.out.println("rawTargetsStr=" + rawTargetsStr);
+			    		String filteredTargetsStr = rawTargetsStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+			    		System.out.println("filteredTargetsStr=" + filteredTargetsStr);
+			    		String[] targetsStrArr = filteredTargetsStr.split(" ");
+			    		int[] syncTargets;
+			    		if (targetsStrArr[0].equals("null")) {
+			    			syncTargets = null;
+			    		} else {
+			    			syncTargets = new int[targetsStrArr.length - 1];
+				    		for (int i = 0; i < syncTargets.length - 1; i++) {
+				    			syncTargets[i] = Integer.parseInt(targetsStrArr[i]);
+				    		}
+			    		}
+			    		String rtypeStr = strTokens[5];
+			    		ResyncType rtype = null; 
+			    		if (rtypeStr.equals("ONLINE")) {
+			    			rtype = ResyncPath.ResyncType.ONLINE;
+			    		} else if (rtypeStr.equals("OFFLINE_1")) {
+			    			rtype = ResyncPath.ResyncType.OFFLINE_1;
+			    		} else if (rtypeStr.equals("OFFLINE_2")) {
+			    			rtype = ResyncPath.ResyncType.OFFLINE_2;
+			    		} else {
+			    			System.err.println("Assert: unknown resync type=" + rtypeStr);
+			    			System.exit(1);
+			    		}
+			    		Path resyncPath = new ResyncPath(dn, syncSources, syncTargets, rtype);
+			    		System.out.println("resync path=" + resyncPath.toString());
 			    		needleSchedule.sched.add(resyncPath);
 			    	} else {
 			    		System.err.println("Parse Error!");
@@ -65,6 +134,9 @@ public class ScheduleFileSearcher {
 			    	}
 			    }
 			}
+		} catch (FileNotFoundException fnfe) {
+			System.err.println("FileNotFoundException!!");
+			System.exit(1);
 		} catch (IOException ioe) {
 			//log.warn("IOException occurred while reading objects. Treat it as EOF!");
 			System.out.println("EOF! We read all Schedules in this file");
@@ -80,6 +152,10 @@ public class ScheduleFileSearcher {
 		LinkedList<StrataSchedule> currentSchedules = null;
 		loadNeedleSchedule();
 		System.out.println("loaded needle schedule=" + needleSchedule.toString());
+		if (needleSchedule.sched.isEmpty()) {
+			System.err.println("ASSERTION: needleSchedule.sched is empty!");
+			System.exit(1);
+		}
 		File[] fileList = folder.listFiles();
 		Arrays.sort(fileList, new Comparator<File>() {
             @Override

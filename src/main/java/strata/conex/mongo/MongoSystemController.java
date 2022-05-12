@@ -39,6 +39,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 
+import strata.common.Path;
 import strata.conex.SystemController;
 import strata.conex.TestingEngine;
 
@@ -1430,7 +1431,13 @@ public class MongoSystemController extends SystemController {
 	}
 
 	@Override
-	public void waitBeforeVerification() {
+	public void triggerResyncPath(int[] targetSyncSourcesChange) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void loadPath(Path path) {
 		// TODO Auto-generated method stub
 		
 	}
