@@ -19,9 +19,10 @@ import strata.common.DeviationPath;
 import strata.common.Path;
 import strata.common.ResyncPath;
 import strata.common.StrataSchedule;
-import strata.conex.cassandra.CassandraSystemController;
 import strata.conex.mongo.MongoSystemController;
+import strata.conex.redis.RedisSystemController;
 import strata.conex.zookeeper.ZooKeeperSystemController;
+import strata.utils.ObjectCopy;
 import strata.utils.ScheduleExecutionStatMeasurer;
 
 public class TestingEngine {
@@ -41,7 +42,7 @@ public class TestingEngine {
 	public static String workingDir; // = "/home/kroud2/bhkim/strata/test-5-3-zk-3.4.11-strata-0.1"; //"/home/ben/project/vcon/zktests"; // HARD-CODED
 	public static String workingDirPrefix;
 	int testNum;
-	protected enum SystemUnderTestType {ZooKeeper, Cassandra, Couchbase, MongoDB, HBase, Redis, Unknown};
+	protected enum SystemUnderTestType {ZooKeeper, Cassandra, Couchbase, MongoDB, HBase, Redis};
 	protected static SystemUnderTestType sysType; //= SystemUnderTestType.ZooKeeper; // HARD-CODED
 	public static String sutVersion;
 	public static String strataVersion;
@@ -156,9 +157,6 @@ public class TestingEngine {
 		if (sysType.equals(SystemUnderTestType.ZooKeeper)) {
         	controller = new ZooKeeperSystemController(numNode, workingDir);
         	controller.sysCtrlParseConfigInit(sysCntrConfigName);
-        } else if (sysType.equals(SystemUnderTestType.Cassandra)) {
-        	controller = new CassandraSystemController(numNode, workingDir);
-        	controller.sysCtrlParseConfigInit(sysCntrConfigName);
         } else if (sysType.equals(SystemUnderTestType.MongoDB)) {
         	controller = new MongoSystemController(numNode, workingDir);
         	controller.sysCtrlParseConfigInit(sysCntrConfigName);
@@ -166,8 +164,8 @@ public class TestingEngine {
         	//TBD
         	
         } else if (sysType.equals(SystemUnderTestType.Redis)) {
-        	//TBD
-        	
+        	controller = new RedisSystemController(numNode, workingDir);
+        	controller.sysCtrlParseConfigInit(sysCntrConfigName);
         } else {
         	System.err.println("Currently unsupported system type=" + sysType.toString());
         	System.exit(1);
@@ -193,35 +191,16 @@ public class TestingEngine {
         
 	}
 	
-	public StrataSchedule cloneSchedule(StrataSchedule schedOrig) {
-		StrataSchedule schedCopy = null;
-		if (schedOrig != null) {
-			schedCopy = new StrataSchedule();
-			for (Path path : schedOrig.sched) {
-				if (path instanceof DeviationPath) {
-					DeviationPath dPath = (DeviationPath) path;
-					DeviationPath dPathCopy = new DeviationPath(dPath.targetState.clone());
-					schedCopy.sched.add(dPathCopy);
-				} else if (path instanceof ResyncPath) {
-					ResyncPath rPath = (ResyncPath) path;
-					ResyncPath rPathCopy = new ResyncPath(rPath.devNode.clone());
-					schedCopy.sched.add(rPathCopy);
-				}
-			}
-		}
-		
-		return schedCopy;
-	}
-	
 	public void loadSchedulesFromSchedFile(File curSchedFile) {
 		StrataSchedule inSched = null;
 		try {
 			FileInputStream fileIn = new FileInputStream(curSchedFile);
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 			while ((inSched = (StrataSchedule) in.readObject()) != null) {
-				StrataSchedule schedWorkingCopy = cloneSchedule(inSched);
+				StrataSchedule schedStandaloneCopy = (StrataSchedule) ObjectCopy.copy(inSched);
 				//currentSchedules.add(inSched);
-				currentSchedules.add(schedWorkingCopy);
+				currentSchedules.add(schedStandaloneCopy);
+				//System.out.println("Schedule:\n" + inSched.toString());
 			}
 			in.close();
 		} catch (IOException ioe) {
@@ -250,7 +229,6 @@ public class TestingEngine {
 		long schedExecDur;
 		ArrayList<Integer> arrayOfStatIDs;
 		
-		// start testing
 		System.out.println("Start Testing!");
 		System.out.println("=============================================================================");
 		for (File curSchedFile : scheduleFiles) {
@@ -278,7 +256,7 @@ public class TestingEngine {
 				// setup some system under test specific environment correctly.. 
 		        // e.g. create conf directory with the correct configurations, etc.
 		        controller.prepareTestingEnvironment();
-				initializeTesting();
+		        initializeTesting();
 				saveAbstractSchedule(sched);
 				// init stat collection
 				statMgr = new ScheduleExecutionStatMeasurer();
@@ -418,7 +396,7 @@ public class TestingEngine {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				System.out.println("nodeID=" + i + " key=" + j + " value=" + nodeKeyValueStringArray[i][j]);
+				System.out.println("nodeID=" + i + " key=" + keys[j] + " value=" + nodeKeyValueStringArray[i][j]);
 			}
 		}
 		for (int i = 0; i < numAOP; i++) { // orig
@@ -497,7 +475,6 @@ public class TestingEngine {
 			}
 			//System.out.println("Execution is done for the path=" + path.toString());
 		}
-		controller.waitBeforeVerification();
 		return true;
 	}
 	
@@ -548,6 +525,7 @@ public class TestingEngine {
 			//System.out.println("starting nodeID=" + nodeID);
 			controller.startNode(nodeID);
 		}
+		controller.triggerResyncPath(rp.targetSyncSourcesChange);
 		//System.out.println("now waiting for resync...");
 		boolean waitResult = controller.waitForResync(restartNodes);
 		//System.out.println("done with resync...");
@@ -560,25 +538,6 @@ public class TestingEngine {
 
 
 	private void runProgrammedSchedule(String inputSchedFilePath) {
-		byte[][] outputA = new byte[5][];
-		byte[][] outputB = new byte[5][];
-		byte[][] outputC = new byte[5][];
-		String outputAKey1 = null;
-		String outputBKey1 = null;
-		String outputCKey1 = null;
-		String outputAKey2 = null;
-		String outputBKey2 = null;
-		String outputCKey2 = null;
-		String outputAKey3 = null;
-		String outputBKey3 = null;
-		String outputCKey3 = null;
-		String outputAKey4 = null;
-		String outputBKey4 = null;
-		String outputCKey4 = null;
-		String outputAKey5 = null;
-		String outputBKey5 = null;
-		String outputCKey5 = null;
-		String keyPrefix = "/testDivergenceResync";
 		
 		/*
 		 * start testing
@@ -632,8 +591,10 @@ public class TestingEngine {
     					break;
     				}
 		    	} else {
-		    		String devNodeStr = bigTokens[2];
+		    		String devNodeStr = bigTokens[2].split("]")[0];
 		    		String[] items = devNodeStr.replaceAll("\\[", "").replaceAll("\\]", "").replaceAll("\\s", "").split(",");
+		    		//System.out.println("devNodeStr=" + devNodeStr);
+		    		//System.out.println("items=" + Arrays.deepToString(items));
 		    		int[] devNode = new int[items.length];
 		    		for (int i = 0; i < items.length; i++) {
 		    		    try {
@@ -642,7 +603,28 @@ public class TestingEngine {
 		    		        //NOTE: write something here if you need to recover from formatting errors
 		    		    };
 		    		}
-		    		Path path = new ResyncPath(devNode);
+		    		String rawSourcesStr = bigTokens[3].split("]")[0];
+		    		//System.out.println("rawSourcesStr=" + rawSourcesStr);
+		    		String filteredSourcesStr = rawSourcesStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+		    		//System.out.println("filteredSourcesStr=" + filteredSourcesStr);
+		    		String[] sourcesStrArr = filteredSourcesStr.split(" ");
+		    		int[] syncSources = new int[sourcesStrArr.length];
+		    		for (int i = 0; i < syncSources.length; i++) {
+		    			syncSources[i] = Integer.parseInt(sourcesStrArr[i]);
+		    		}
+		    		String rawTargetsStr = bigTokens[4];
+		    		//System.out.println("rawTargetsStr=" + rawTargetsStr);
+		    		String filteredTargetsStr = rawTargetsStr.replaceAll("\\[|\\]", "").replaceAll(",", "");
+		    		//System.out.println("filteredTargetsStr=" + filteredTargetsStr);
+		    		String[] targetsStrArr = filteredTargetsStr.split(" ");
+		    		int[] syncTargets = new int[targetsStrArr.length];
+		    		for (int i = 0; i < syncTargets.length; i++) {
+		    			syncTargets[i] = Integer.parseInt(targetsStrArr[i]);
+		    		}
+		    		//System.out.println("syncSources=" + Arrays.toString(syncSources));
+		    		//System.out.println("syncTargets=" + Arrays.toString(syncTargets));
+		    		Path path = new ResyncPath(devNode, syncSources, syncTargets);
+		    		//Path path = new ResyncPath(devNode);
 		    		sched.sched.add(path);
 		    		controller.beforeResyncPath();
 		    		pathExplorationResult = executeResyncPath(path);
@@ -690,57 +672,6 @@ public class TestingEngine {
 			} else {
 				resultStr = "incomplete";
 			}
-		    int srvA = 0;
-		    int srvB = 1;
-		    int srvC = 2;
-		    outputA[0] = controller.readData(srvA, keyPrefix + 0);
-			outputA[1] = controller.readData(srvA, keyPrefix + 1);
-			outputA[2] = controller.readData(srvA, keyPrefix + 2);
-			outputA[3] = controller.readData(srvA, keyPrefix + 3);
-			outputA[4] = controller.readData(srvA, keyPrefix + 4);
-			outputB[0] = controller.readData(srvB, keyPrefix + 0);
-			outputB[1] = controller.readData(srvB, keyPrefix + 1);
-			outputB[2] = controller.readData(srvB, keyPrefix + 2);
-			outputB[3] = controller.readData(srvB, keyPrefix + 3);
-			outputB[4] = controller.readData(srvB, keyPrefix + 4);
-			outputC[0] = controller.readData(srvC, keyPrefix + 0);
-			outputC[1] = controller.readData(srvC, keyPrefix + 1);
-			outputC[2] = controller.readData(srvC, keyPrefix + 2);
-			outputC[3] = controller.readData(srvC, keyPrefix + 3);
-			outputC[4] = controller.readData(srvC, keyPrefix + 4);
-
-			outputAKey1 = new String(outputA[0], "UTF-8");
-			outputBKey1 = new String(outputB[0], "UTF-8");
-			outputCKey1 = new String(outputC[0], "UTF-8");
-			outputAKey2 = new String(outputA[1], "UTF-8");
-			outputBKey2 = new String(outputB[1], "UTF-8");
-			outputCKey2 = new String(outputC[1], "UTF-8");
-			outputAKey3 = new String(outputA[2], "UTF-8");
-			outputBKey3 = new String(outputB[2], "UTF-8");
-			outputCKey3 = new String(outputC[2], "UTF-8");
-			outputAKey4 = new String(outputA[3], "UTF-8");
-			outputBKey4 = new String(outputB[3], "UTF-8");
-			outputCKey4 = new String(outputC[3], "UTF-8");
-			outputAKey5 = new String(outputA[4], "UTF-8");
-			outputBKey5 = new String(outputB[4], "UTF-8");
-			outputCKey5 = new String(outputC[4], "UTF-8");
-			
-			System.out.println("outputAKey1=" + outputAKey1);
-			System.out.println("outputBKey1=" + outputBKey1);
-			System.out.println("outputCKey1=" + outputCKey1);
-			System.out.println("outputAKey2=" + outputAKey2);
-			System.out.println("outputBKey2=" + outputBKey2);
-			System.out.println("outputCKey2=" + outputCKey2);
-			System.out.println("outputAKey3=" + outputAKey3);
-			System.out.println("outputBKey3=" + outputBKey3);
-			System.out.println("outputCKey3=" + outputCKey3);
-			System.out.println("outputAKey4=" + outputAKey4);
-			System.out.println("outputBKey4=" + outputBKey4);
-			System.out.println("outputCKey4=" + outputCKey4);
-			System.out.println("outputAKey5=" + outputAKey5);
-			System.out.println("outputBKey5=" + outputBKey5);
-			System.out.println("outputCKey5=" + outputCKey5);
-		    
 		    controller.takedownClients();
 			controller.stopEnsemble();
 			controller.resetTest();
@@ -787,7 +718,7 @@ public class TestingEngine {
 		    	   String sysTypeStr = tokens[1];
 		    	   if (sysTypeStr.equals("zookeeper")) {
 		    		   sysType = SystemUnderTestType.ZooKeeper;
-		    	   } else if (sysTypeStr.equals("Cassandra")) {
+		    	   } else if (sysTypeStr.equals("cassandra")) {
 		    		   sysType = SystemUnderTestType.Cassandra;
 		    	   } else if (sysTypeStr.equals("Couchbase")) {
 		    		   sysType = SystemUnderTestType.Couchbase; 
@@ -795,8 +726,8 @@ public class TestingEngine {
 		    		   sysType = SystemUnderTestType.MongoDB;
 		    	   } else if (sysTypeStr.equals("HBase")) {
 		    		   sysType = SystemUnderTestType.HBase;
-		    	   } else {
-		    		   sysType = SystemUnderTestType.Unknown;
+		    	   } else if (sysTypeStr.equals("Redis")) {
+		    		   sysType = SystemUnderTestType.Redis;
 		    	   }
 		       } else if (line.startsWith("sutVersion")) {
 		    	   String[] tokens = line.split("=");

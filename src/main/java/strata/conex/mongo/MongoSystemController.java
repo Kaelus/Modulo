@@ -1430,7 +1430,7 @@ public class MongoSystemController extends SystemController {
 	}
 
 	@Override
-	public void waitBeforeVerification() {
+	public void triggerResyncPath(int[] targetSyncSourcesChange) {
 		// TODO Auto-generated method stub
 		
 	}
